@@ -146,9 +146,9 @@ namespace Autofac.Extras.DynamicProxy
                 }
 
                 proxyParameters.Add(new PositionalParameter(index++, GetInterceptorServices(e.Component, registration.ActivatorData.ImplementationType)
-                .Select(s => e.Context.ResolveService(s))
-                .Cast<IInterceptor>()
-                .ToArray()));
+                    .Select(s => e.Context.ResolveService(s))
+                    .Cast<IInterceptor>()
+                    .ToArray()));
 
                 if (options.Selector != null)
                 {
