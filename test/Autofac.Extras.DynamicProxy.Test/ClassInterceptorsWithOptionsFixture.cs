@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Castle.DynamicProxy;
@@ -9,31 +8,28 @@ namespace Autofac.Extras.DynamicProxy.Test
 {
     public class ClassInterceptorsWithOptionsFixture
     {
+        public interface ILazyLoadMixin
+        {
+            bool IsLoaded { get; }
+        }
+
         [Fact]
         public void CanCreateMixinWithClassInterceptors()
         {
             var options = new ProxyGenerationOptions();
-            options.AddMixinInstance(new Dictionary<int, int>());
+            options.AddMixinInstance(new LazyLoadMixin());
 
             var builder = new ContainerBuilder();
             builder.RegisterType<C>().EnableClassInterceptors(options);
             builder.RegisterType<AddOneInterceptor>();
             builder.RegisterType<AddTenInterceptor>();
             var container = builder.Build();
-            var i = 10;
+            int i = 10;
             var cpt = container.Resolve<C>(TypedParameter.From(i));
 
-            var dict = cpt as IDictionary<int, int>;
-
-            Assert.NotNull(dict);
-
-            dict.Add(1, 2);
-
-            Assert.Equal(2, dict[1]);
-
-            dict.Clear();
-
-            Assert.Empty(dict);
+            var loaded = cpt as ILazyLoadMixin;
+            Assert.NotNull(loaded);
+            Assert.True(loaded.IsLoaded);
         }
 
         [Fact]
@@ -46,7 +42,7 @@ namespace Autofac.Extras.DynamicProxy.Test
             builder.RegisterType<AddOneInterceptor>();
             builder.RegisterType<AddTenInterceptor>();
             var container = builder.Build();
-            var i = 10;
+            int i = 10;
             var cpt = container.Resolve<C>(TypedParameter.From(i));
 
             Assert.Equal(i + 1, cpt.GetI());
@@ -63,57 +59,11 @@ namespace Autofac.Extras.DynamicProxy.Test
             builder.RegisterType<AddOneInterceptor>();
             builder.RegisterType<AddTenInterceptor>();
             var container = builder.Build();
-            var i = 10;
+            int i = 10;
             var cpt = container.Resolve<C>(TypedParameter.From(i));
 
             Assert.Equal(i, cpt.GetI());
             Assert.Equal(i + 11, cpt.GetJ());
-        }
-
-        [Intercept(typeof(AddOneInterceptor))]
-        [Intercept(typeof(AddTenInterceptor))]
-        public class C
-        {
-            public C(int i)
-            {
-                I = J = i;
-            }
-
-            public int I { get; set; }
-
-            public int J { get; set; }
-
-            public virtual int GetI()
-            {
-                return I;
-            }
-
-            public virtual int GetJ()
-            {
-                return J;
-            }
-        }
-
-        public class D
-        {
-            public D(int i)
-            {
-                I = J = i;
-            }
-
-            public int I { get; set; }
-
-            public int J { get; set; }
-
-            public virtual int GetI()
-            {
-                return I;
-            }
-
-            public virtual int GetJ()
-            {
-                return J;
-            }
         }
 
         private class AddOneInterceptor : IInterceptor
@@ -140,6 +90,52 @@ namespace Autofac.Extras.DynamicProxy.Test
             }
         }
 
+        [Intercept(typeof(AddOneInterceptor))]
+        [Intercept(typeof(AddTenInterceptor))]
+        public class C
+        {
+            public C(int i)
+            {
+                this.I = this.J = i;
+            }
+
+            public int I { get; set; }
+
+            public int J { get; set; }
+
+            public virtual int GetI()
+            {
+                return this.I;
+            }
+
+            public virtual int GetJ()
+            {
+                return this.J;
+            }
+        }
+
+        public class D
+        {
+            public D(int i)
+            {
+                this.I = this.J = i;
+            }
+
+            public int I { get; set; }
+
+            public int J { get; set; }
+
+            public virtual int GetI()
+            {
+                return this.I;
+            }
+
+            public virtual int GetJ()
+            {
+                return this.J;
+            }
+        }
+
         private class InterceptOnlyJ : IProxyGenerationHook
         {
             public void MethodsInspected()
@@ -153,6 +149,17 @@ namespace Autofac.Extras.DynamicProxy.Test
             public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
             {
                 return methodInfo.Name.Equals("GetJ");
+            }
+        }
+
+        public class LazyLoadMixin : ILazyLoadMixin
+        {
+            public bool IsLoaded
+            {
+                get
+                {
+                    return true;
+                }
             }
         }
 
