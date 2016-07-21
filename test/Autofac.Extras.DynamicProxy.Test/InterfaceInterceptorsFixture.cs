@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
 using Castle.Core.Internal;
@@ -22,7 +23,7 @@ namespace Autofac.Extras.DynamicProxy.Test
         [Fact]
         public void InterceptsInternalInterfacesWithInternalsVisibleToDynamicProxyGenAssembly2()
         {
-            var internalsAttribute = typeof(InterfaceInterceptorsFixture).Assembly.GetAttribute<InternalsVisibleToAttribute>();
+            var internalsAttribute = typeof(InterfaceInterceptorsFixture).Assembly.GetCustomAttribute<InternalsVisibleToAttribute>();
             Assert.Contains("DynamicProxyGenAssembly2", internalsAttribute.AssemblyName);
 
             var builder = new ContainerBuilder();
