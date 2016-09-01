@@ -33,7 +33,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\Autofac.snk</AssemblyOriginatorKeyFile>
-    <TargetFrameworkVersion Condition="$(TargetFrameworkVersion)==''">v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion Condition="$(TargetFrameworkVersion)==''">v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile Condition="$(TargetFrameworkVersion)==''">Client</TargetFrameworkProfile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
