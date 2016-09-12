@@ -33,9 +33,10 @@ namespace Autofac.Extras.DynamicProxy
     /// <summary>
     /// Indicates that a type should be intercepted.
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
     [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
-    public sealed class InterceptAttribute : Attribute
+    public class InterceptAttribute : Attribute
     {
         /// <summary>
         /// Gets the interceptor service.
@@ -46,7 +47,9 @@ namespace Autofac.Extras.DynamicProxy
         /// Initializes a new instance of the <see cref="InterceptAttribute"/> class.
         /// </summary>
         /// <param name="interceptorService">The interceptor service.</param>
-        /// <exception cref="System.ArgumentNullException">interceptorService</exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown if <paramref name="interceptorService" /> is <see langword="null" />.
+        /// </exception>
         public InterceptAttribute(Service interceptorService)
         {
             if (interceptorService == null)
