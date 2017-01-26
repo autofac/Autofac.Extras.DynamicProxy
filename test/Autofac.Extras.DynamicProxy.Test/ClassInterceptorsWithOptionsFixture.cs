@@ -175,6 +175,7 @@ namespace Autofac.Extras.DynamicProxy.Test
                 {
                     throw new InvalidOperationException("No interceptors for method " + method.Name);
                 }
+
                 return result;
             }
         }

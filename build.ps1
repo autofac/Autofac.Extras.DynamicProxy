@@ -23,6 +23,6 @@ Get-DotNetProjectDirectory -RootPath $PSScriptRoot | Restore-DependencyPackages
 Get-DotNetProjectDirectory -RootPath $PSScriptRoot\src | Invoke-DotNetPack -PackagesPath $packagesPath
 
 # Test
-Get-DotNetProjectDirectory -RootPath $PSScriptRoot\test | Invoke-Test
+Get-DotNetProjectDirectory -RootPath $PSScriptRoot\test | Where-Object { $_ -inotlike "*Autofac.Extras.DynamicProxy.Test.SatelliteAssembly" } | Invoke-Test
 
 Pop-Location

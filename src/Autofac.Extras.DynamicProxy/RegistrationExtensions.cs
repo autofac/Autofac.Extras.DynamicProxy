@@ -27,12 +27,16 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Remoting;
+using System.Reflection;
 using Autofac.Builder;
 using Autofac.Core;
 using Autofac.Features.Scanning;
 using Castle.DynamicProxy;
 using Castle.DynamicProxy.Internal;
+
+#if NET45
+using System.Runtime.Remoting;
+#endif
 
 namespace Autofac.Extras.DynamicProxy
 {
@@ -68,8 +72,8 @@ namespace Autofac.Extras.DynamicProxy
         /// Only virtual methods can be intercepted this way.
         /// </summary>
         /// <typeparam name="TLimit">Registration limit type.</typeparam>
-        /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
         /// <typeparam name="TConcreteReflectionActivatorData">Activator data type.</typeparam>
+        /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
         /// <param name="registration">Registration to apply interception to.</param>
         /// <returns>Registration builder allowing the registration to be configured.</returns>
         public static IRegistrationBuilder<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle> EnableClassInterceptors<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle>(
@@ -110,8 +114,8 @@ namespace Autofac.Extras.DynamicProxy
         /// Only virtual methods can be intercepted this way.
         /// </summary>
         /// <typeparam name="TLimit">Registration limit type.</typeparam>
-        /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
         /// <typeparam name="TConcreteReflectionActivatorData">Activator data type.</typeparam>
+        /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
         /// <param name="registration">Registration to apply interception to.</param>
         /// <param name="options">Proxy generation options to apply.</param>
         /// <param name="additionalInterfaces">Additional interface types. Calls to their members will be proxied as well.</param>
@@ -129,7 +133,8 @@ namespace Autofac.Extras.DynamicProxy
 
             registration.ActivatorData.ImplementationType =
             ProxyGenerator.ProxyBuilder.CreateClassProxyType(
-                registration.ActivatorData.ImplementationType, additionalInterfaces ?? new Type[0],
+                registration.ActivatorData.ImplementationType,
+                additionalInterfaces ?? new Type[0],
                 options);
 
             registration.OnPreparing(e =>
@@ -198,8 +203,16 @@ namespace Autofac.Extras.DynamicProxy
             {
                 EnsureInterfaceInterceptionApplies(e.Component);
 
-                var proxiedInterfaces = e.Instance.GetType().GetInterfaces()
-                .Where(i => i.IsVisible || i.Assembly.IsInternalToDynamicProxy()).ToArray();
+                var proxiedInterfaces =
+                    e.Instance
+                    .GetType()
+                    .GetInterfaces()
+                    .Where(i =>
+                    {
+                        var ti = i.GetTypeInfo();
+                        return ti.IsVisible || ti.Assembly.IsInternalToDynamicProxy();
+                    })
+                    .ToArray();
 
                 if (!proxiedInterfaces.Any())
                 {
@@ -304,6 +317,7 @@ namespace Autofac.Extras.DynamicProxy
             return InterceptedBy(builder, interceptorServiceTypes.Select(t => new TypedService(t)).ToArray());
         }
 
+#if NET45
         /// <summary>
         /// Intercepts the interface of a transparent proxy (such as WCF channel factory based clients).
         /// </summary>
@@ -346,8 +360,9 @@ namespace Autofac.Extras.DynamicProxy
                     throw new DependencyResolutionException(string.Format(
                     CultureInfo.CurrentCulture, RegistrationExtensionsResources.TypeIsNotTransparentProxy, e.Instance.GetType().FullName));
                 }
-
-                if (!e.Instance.GetType().IsInterface)
+                var instanceType = e.Instance.GetType();
+                var instanceTypeInfo = instanceType.GetTypeInfo();
+                if (!instanceTypeInfo.IsInterface)
                 {
                     throw new DependencyResolutionException(string.Format(
                     CultureInfo.CurrentCulture, RegistrationExtensionsResources.TransparentProxyIsNotInterface, e.Instance.GetType().FullName));
@@ -363,34 +378,40 @@ namespace Autofac.Extras.DynamicProxy
 
                     if (invalidInterfaces.Any())
                     {
-                        string message = string.Format(CultureInfo.CurrentCulture, RegistrationExtensionsResources.InterfaceNotSupportedByTransparentProxy,
-                                                                                                                            string.Join(", ", invalidInterfaces.Select(i => i.FullName)));
+                        string message = string.Format(
+                            CultureInfo.CurrentCulture,
+                            RegistrationExtensionsResources.InterfaceNotSupportedByTransparentProxy,
+                            string.Join(", ", invalidInterfaces.Select(i => i.FullName)));
                         throw new DependencyResolutionException(message);
                     }
                 }
 
-                var interceptors = GetInterceptorServices(e.Component, e.Instance.GetType())
+                var interceptors = GetInterceptorServices(e.Component, instanceType)
                     .Select(s => e.Context.ResolveService(s))
                     .Cast<IInterceptor>()
                     .ToArray();
 
                 e.Instance = options == null
-                ? ProxyGenerator.CreateInterfaceProxyWithTargetInterface(e.Instance.GetType(), additionalInterfacesToProxy, e.Instance, interceptors)
-                : ProxyGenerator.CreateInterfaceProxyWithTargetInterface(e.Instance.GetType(), additionalInterfacesToProxy, e.Instance, options, interceptors);
+                ? ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, e.Instance, interceptors)
+                : ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, e.Instance, options, interceptors);
             });
 
             return registration;
         }
+#endif
 
         private static void EnsureInterfaceInterceptionApplies(IComponentRegistration componentRegistration)
         {
             if (componentRegistration.Services
             .OfType<IServiceWithType>()
-            .Any(swt => !swt.ServiceType.IsInterface || (!swt.ServiceType.Assembly.IsInternalToDynamicProxy() && !swt.ServiceType.IsVisible)))
+            .Select(s => s.ServiceType.GetTypeInfo())
+            .Any(s => !s.IsInterface || (!s.Assembly.IsInternalToDynamicProxy() && !s.IsVisible)))
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-               RegistrationExtensionsResources.InterfaceProxyingOnlySupportsInterfaceServices,
-               componentRegistration));
+                throw new InvalidOperationException(
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        RegistrationExtensionsResources.InterfaceProxyingOnlySupportsInterfaceServices,
+                        componentRegistration));
             }
         }
 
@@ -414,16 +435,17 @@ namespace Autofac.Extras.DynamicProxy
                 result = result.Concat((IEnumerable<Service>)services);
             }
 
-            if (implType.IsClass)
+            var implTypeInfo = implType.GetTypeInfo();
+            if (implTypeInfo.IsClass)
             {
-                result = result.Concat(implType
+                result = result.Concat(implTypeInfo
                     .GetCustomAttributes(typeof(InterceptAttribute), true)
                     .Cast<InterceptAttribute>()
                     .Select(att => att.InterceptorService));
 
                 result = result.Concat(implType
                     .GetInterfaces()
-                    .SelectMany(i => i.GetCustomAttributes(typeof(InterceptAttribute), true))
+                    .SelectMany(i => i.GetTypeInfo().GetCustomAttributes(typeof(InterceptAttribute), true))
                     .Cast<InterceptAttribute>()
                     .Select(att => att.InterceptorService));
             }

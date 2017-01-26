@@ -10,8 +10,9 @@
 
 namespace Autofac.Extras.DynamicProxy {
     using System;
-    
-    
+    using System.Reflection;
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +24,15 @@ namespace Autofac.Extras.DynamicProxy {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class RegistrationExtensionsResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal RegistrationExtensionsResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -39,13 +40,13 @@ namespace Autofac.Extras.DynamicProxy {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.Extras.DynamicProxy.RegistrationExtensionsResources", typeof(RegistrationExtensionsResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Autofac.Extras.DynamicProxy.RegistrationExtensionsResources", typeof(RegistrationExtensionsResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +60,7 @@ namespace Autofac.Extras.DynamicProxy {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The transparent proxy does not support the additional interface(s): {0}..
         /// </summary>
@@ -68,7 +69,7 @@ namespace Autofac.Extras.DynamicProxy {
                 return ResourceManager.GetString("InterfaceNotSupportedByTransparentProxy", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The component {0} cannot use interface interception as it provides services that are not publicly visible interfaces. Check your registration of the component to ensure you&apos;re not enabling interception and registering it as an internal/private interface type..
         /// </summary>
@@ -77,7 +78,7 @@ namespace Autofac.Extras.DynamicProxy {
                 return ResourceManager.GetString("InterfaceProxyingOnlySupportsInterfaceServices", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The transparent proxy of type &apos;{0}&apos; must be an interface..
         /// </summary>
@@ -86,7 +87,7 @@ namespace Autofac.Extras.DynamicProxy {
                 return ResourceManager.GetString("TransparentProxyIsNotInterface", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The instance of type &apos;{0}&apos; is not a transparent proxy..
         /// </summary>

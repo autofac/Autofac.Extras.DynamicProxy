@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET46
+using System;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using Autofac.Core;
@@ -106,6 +107,7 @@ namespace Autofac.Extras.DynamicProxy.Test
         {
             var host = new ServiceHost(typeof(TestService), TestServiceAddress);
             host.AddServiceEndpoint(typeof(ITestService), new BasicHttpBinding(), "");
+
             // host.AddDependencyInjectionBehavior<ITestService>(container);
             host.Description.Behaviors.Add(new ServiceMetadataBehavior { HttpGetEnabled = true, HttpGetUrl = TestServiceAddress });
             return host;
@@ -135,3 +137,4 @@ namespace Autofac.Extras.DynamicProxy.Test
         }
     }
 }
+#endif
