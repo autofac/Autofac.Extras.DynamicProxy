@@ -9,8 +9,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: NeutralResourcesLanguage("en-US")]
 [assembly: AssemblyCopyright("Copyright © 2014 Autofac Contributors")]
-[assembly: AssemblyDescription("Interceptor and decorator support for Autofac IoC via Castle DynamicProxy.")]
-
-[assembly: AssemblyVersion("4.0.0.0")]
-[assembly: AssemblyFileVersion("4.0.0.0")]
-[assembly: AssemblyInformationalVersion("4.0.0.0")]
+[assembly: AssemblyDescription("Autofac extension for enabling AOP in conjunction with Castle.")]

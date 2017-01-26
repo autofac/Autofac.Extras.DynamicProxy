@@ -1,29 +1,26 @@
-environment:
-  package_semantic_version: 4.1.0
-  assembly_semantic_version: 4.1.0
-
-version: $(package_semantic_version).{build}
-
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: '$(assembly_semantic_version).0'
-  assembly_file_version: '$(appveyor_build_version)'
-  assembly_informational_version: '$(package_semantic_version)-CI-{build}'
+version: 4.2.0.{build}
 
 configuration: Release
 
-before_build:
-- nuget restore
+nuget:
+  disable_publish_on_pr: true
 
-build:
-  verbosity: minimal
-  publish_nuget: true
-  publish_nuget_symbols: true
+clone_depth: 1
+
+test: off
+
+build_script:
+- ps: .\build.ps1
+
+artifacts:
+- path: artifacts\packages\**\*.nupkg
+  name: MyGet
 
 deploy:
 - provider: NuGet
   server: https://www.myget.org/F/autofac/api/v2/package
   api_key:
     secure: rCUEY75fXN0wxtMy6QL4jCrLdaYbxIBzIXWeN+wEu/XDpyqimzreOc5AH5jMd5ah
+  skip_symbols: false
   symbol_server: https://www.myget.org/F/autofac/symbols/api/v2/package
+  artifact: MyGet
