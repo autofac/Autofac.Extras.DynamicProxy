@@ -1,4 +1,4 @@
-#Autofac.Extras.DynamicProxy
+# Autofac.Extras.DynamicProxy
 
 Interceptor and decorator support for [Autofac](http://autofac.org) via Castle DynamicProxy.
 
