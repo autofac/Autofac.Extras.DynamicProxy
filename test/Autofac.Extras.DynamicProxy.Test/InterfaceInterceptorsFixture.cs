@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Autofac.Core;
 using Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
-using Castle.Core.Internal;
 using Castle.DynamicProxy;
 using Xunit;
 
@@ -10,14 +10,14 @@ namespace Autofac.Extras.DynamicProxy.Test
 {
     public class InterfaceInterceptorsFixture
     {
-        public interface IPublicInterface
-        {
-            string PublicMethod();
-        }
-
         internal interface IInternalInterface
         {
             string InternalMethod();
+        }
+
+        public interface IPublicInterface
+        {
+            string PublicMethod();
         }
 
         [Fact]
@@ -68,8 +68,43 @@ namespace Autofac.Extras.DynamicProxy.Test
             Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
         }
 
+        [Fact]
+        public void ThrowsIfParametersAreNotMet()
+        {
+            // Issue #14: Resolving an intercepted type where dependencies aren't met should throw
+            var builder = new ContainerBuilder();
+            builder.RegisterType<StringMethodInterceptor>();
+            builder
+                .RegisterType<InterceptableWithParameter>()
+                .EnableInterfaceInterceptors()
+                .InterceptedBy(typeof(StringMethodInterceptor))
+                .As<IPublicInterface>();
+            var container = builder.Build();
+            Assert.Throws<DependencyResolutionException>(() => container.Resolve<IPublicInterface>());
+        }
+
         public class Interceptable : IPublicInterface, IInternalInterface
         {
+            public string InternalMethod()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string PublicMethod()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class InterceptableWithParameter : IPublicInterface, IInternalInterface
+        {
+            private readonly int _value;
+
+            public InterceptableWithParameter(int value)
+            {
+                this._value = value;
+            }
+
             public string InternalMethod()
             {
                 throw new NotImplementedException();

@@ -1,4 +1,5 @@
-﻿using Castle.DynamicProxy;
+﻿using Autofac.Core;
+using Castle.DynamicProxy;
 using Xunit;
 
 namespace Autofac.Extras.DynamicProxy.Test
@@ -33,35 +34,15 @@ namespace Autofac.Extras.DynamicProxy.Test
             Assert.Equal(i + 1, got);
         }
 
-        [Intercept(typeof(AddOneInterceptor))]
-        public class C
+        [Fact(Skip = "Issue #14")]
+        public void ThrowsIfParametersAreNotMet()
         {
-            public C(int i)
-            {
-                I = i;
-            }
-
-            public int I { get; set; }
-
-            public virtual int GetI()
-            {
-                return I;
-            }
-        }
-
-        public class D
-        {
-            public D(int i)
-            {
-                I = i;
-            }
-
-            public int I { get; set; }
-
-            public virtual int GetI()
-            {
-                return I;
-            }
+            // Issue #14: Resolving an intercepted type where dependencies aren't met should throw
+            var builder = new ContainerBuilder();
+            builder.RegisterType<C>().EnableClassInterceptors();
+            builder.RegisterType<AddOneInterceptor>();
+            var container = builder.Build();
+            Assert.Throws<DependencyResolutionException>(() => container.Resolve<C>());
         }
 
         private class AddOneInterceptor : IInterceptor
@@ -73,6 +54,37 @@ namespace Autofac.Extras.DynamicProxy.Test
                 {
                     invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
                 }
+            }
+        }
+
+        [Intercept(typeof(AddOneInterceptor))]
+        public class C
+        {
+            public C(int i)
+            {
+                this.I = i;
+            }
+
+            public int I { get; set; }
+
+            public virtual int GetI()
+            {
+                return this.I;
+            }
+        }
+
+        public class D
+        {
+            public D(int i)
+            {
+                this.I = i;
+            }
+
+            public int I { get; set; }
+
+            public virtual int GetI()
+            {
+                return this.I;
             }
         }
     }
