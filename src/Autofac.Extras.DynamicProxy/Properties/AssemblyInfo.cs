@@ -8,5 +8,3 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(true)]
 [assembly: ComVisible(false)]
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: AssemblyCopyright("Copyright © 2014 Autofac Contributors")]
-[assembly: AssemblyDescription("Autofac extension for enabling AOP in conjunction with Castle.")]
