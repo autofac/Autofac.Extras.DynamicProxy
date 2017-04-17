@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Autofac extension for enabling AOP in conjunction with Castle.</Description>
-    <VersionPrefix>4.2.1</VersionPrefix>
+    <VersionPrefix>4.2.2</VersionPrefix>
     <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
