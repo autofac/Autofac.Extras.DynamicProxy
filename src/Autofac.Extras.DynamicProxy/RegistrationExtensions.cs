@@ -49,7 +49,7 @@ namespace Autofac.Extras.DynamicProxy
 
         private const string AttributeInterceptorsPropertyName = "Autofac.Extras.DynamicProxy.RegistrationExtensions.AttributeInterceptorsPropertyName";
 
-        private static readonly IEnumerable<Service> EmptyServices = new Service[0];
+        private static readonly IEnumerable<Service> EmptyServices = Enumerable.Empty<Service>();
 
         private static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
 

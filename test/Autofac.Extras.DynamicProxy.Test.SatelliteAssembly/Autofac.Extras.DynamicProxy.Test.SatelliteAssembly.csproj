@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net451;netstandard1.1</TargetFrameworks>
+    <NoWarn>$(NoWarn);CS1591;SA1602;SA1611</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>Autofac.Extras.DynamicProxy.Test.SatelliteAssembly</AssemblyName>
     <AssemblyOriginatorKeyFile>../../Autofac.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -9,10 +11,11 @@
     <PackageId>Autofac.Extras.DynamicProxy.Test.SatelliteAssembly</PackageId>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <CodeAnalysisRuleSet>../../build/Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.0.0">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta001">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>

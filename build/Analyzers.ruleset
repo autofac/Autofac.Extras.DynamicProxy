@@ -2,6 +2,10 @@
 <RuleSet Name="Autofac Analyzer Rules" Description="Analyzer rules for Autofac assemblies." ToolsVersion="14.0">
   <!-- https://github.com/dotnet/roslyn/blob/master/docs/compilers/Rule%20Set%20Format.md -->
   <IncludeAll Action="Warning" />
+  <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
+    <!-- Use Array.Empty<T>() instead of empty arrays, but that's not in netstandard -->
+    <Rule Id="CA1825" Action="None" />
+  </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <!-- Prefix local calls with this -->
     <Rule Id="SA1101" Action="None" />
