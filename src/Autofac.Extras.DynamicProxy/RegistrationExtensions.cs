@@ -355,6 +355,7 @@ namespace Autofac.Extras.DynamicProxy
                     throw new DependencyResolutionException(string.Format(
                     CultureInfo.CurrentCulture, RegistrationExtensionsResources.TypeIsNotTransparentProxy, e.Instance.GetType().FullName));
                 }
+
                 var instanceType = e.Instance.GetType();
                 var instanceTypeInfo = instanceType.GetTypeInfo();
                 if (!instanceTypeInfo.IsInterface)

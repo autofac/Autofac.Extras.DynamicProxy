@@ -53,7 +53,7 @@ namespace Autofac.Extras.DynamicProxy
         public InterceptAttribute(Service interceptorService)
         {
             if (interceptorService == null)
-                throw new ArgumentNullException("interceptorService");
+                throw new ArgumentNullException(nameof(interceptorService));
 
             InterceptorService = interceptorService;
         }
