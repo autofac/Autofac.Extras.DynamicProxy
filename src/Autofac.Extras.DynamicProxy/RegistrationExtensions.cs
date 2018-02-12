@@ -211,11 +211,7 @@ namespace Autofac.Extras.DynamicProxy
                 var proxiedInterfaces = e.Instance
                     .GetType()
                     .GetInterfaces()
-                    .Where(i =>
-                    {
-                        var ti = i.GetTypeInfo();
-                        return ti.IsVisible || ti.Assembly.IsInternalToDynamicProxy();
-                    })
+                    .Where(i => ProxyUtil.IsAccessible(i))
                     .ToArray();
 
                 if (!proxiedInterfaces.Any())
@@ -400,8 +396,8 @@ namespace Autofac.Extras.DynamicProxy
         {
             if (componentRegistration.Services
                 .OfType<IServiceWithType>()
-                .Select(s => s.ServiceType.GetTypeInfo())
-                .Any(s => !s.IsInterface || (!s.Assembly.IsInternalToDynamicProxy() && !s.IsVisible)))
+                .Select(s => new Tuple<Type, TypeInfo>(s.ServiceType, s.ServiceType.GetTypeInfo()))
+                .Any(s => !s.Item2.IsInterface || !ProxyUtil.IsAccessible(s.Item1)))
             {
                 throw new InvalidOperationException(
                     string.Format(

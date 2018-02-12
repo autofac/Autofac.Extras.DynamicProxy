@@ -20,6 +20,11 @@ namespace Autofac.Extras.DynamicProxy.Test
             string PublicMethod();
         }
 
+        private interface IPrivateInterface
+        {
+            string PrivateMethod();
+        }
+
         [Fact]
         public void InterceptsInternalInterfacesWithInternalsVisibleToDynamicProxyGenAssembly2()
         {
@@ -54,6 +59,20 @@ namespace Autofac.Extras.DynamicProxy.Test
         }
 
         [Fact]
+        public void DoesNotInterceptPrivateInterfaces()
+        {
+            var builder = new ContainerBuilder();
+            builder.RegisterType<StringMethodInterceptor>();
+            builder
+                .RegisterType<Interceptable>()
+                .EnableInterfaceInterceptors()
+                .InterceptedBy(typeof(StringMethodInterceptor))
+                .As<IPrivateInterface>();
+            var container = builder.Build();
+            Assert.Throws<DependencyResolutionException>(() => container.Resolve<IPrivateInterface>());
+        }
+
+        [Fact]
         public void InterceptsPublicInterfacesSatelliteAssembly()
         {
             var builder = new ContainerBuilder();
@@ -83,9 +102,14 @@ namespace Autofac.Extras.DynamicProxy.Test
             Assert.Throws<DependencyResolutionException>(() => container.Resolve<IPublicInterface>());
         }
 
-        public class Interceptable : IPublicInterface, IInternalInterface
+        public class Interceptable : IPublicInterface, IInternalInterface, IPrivateInterface
         {
             public string InternalMethod()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string PrivateMethod()
             {
                 throw new NotImplementedException();
             }
