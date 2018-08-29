@@ -1,6 +1,11 @@
 ########################
 # THE BUILD!
 ########################
+
+ param (
+    [switch]$Bench = $false
+ )
+
 Push-Location $PSScriptRoot
 Import-Module $PSScriptRoot\Build\Autofac.Build.psd1 -Force
 
@@ -39,6 +44,12 @@ Get-DotNetProjectDirectory -RootPath $PSScriptRoot\src | Invoke-DotNetPack -Pack
 # Test
 Write-Message "Executing unit tests"
 Get-DotNetProjectDirectory -RootPath $PSScriptRoot\test | Where-Object { $_ -inotlike "*Autofac.Extras.DynamicProxy.Test.SatelliteAssembly" } | Invoke-Test
+
+# Benchmark
+if ($Bench) {
+    Get-DotNetProjectDirectory -RootPath $PSScriptRoot\bench | Invoke-Test
+    Get-ChildItem -Path $PSScriptRoot\bench -Filter "BenchmarkDotNet.Artifacts" -Directory -Recurse | Move-Item -Destination "$PSScriptRoot\artifacts\benchmarks"
+}
 
 # Finished
 Write-Message "Build finished"
