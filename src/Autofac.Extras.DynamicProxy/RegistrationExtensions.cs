@@ -244,7 +244,7 @@ namespace Autofac.Extras.DynamicProxy
         /// <param name="builder">Registration to apply interception to.</param>
         /// <param name="interceptorServices">The interceptor services.</param>
         /// <returns>Registration builder allowing the registration to be configured.</returns>
-        /// <exception cref="System.ArgumentNullException">builder or interceptorServices</exception>
+        /// <exception cref="System.ArgumentNullException"><paramref name="builder"/> or <paramref name="interceptorServices"/>.</exception>
         public static IRegistrationBuilder<TLimit, TActivatorData, TStyle> InterceptedBy<TLimit, TActivatorData, TStyle>(
             this IRegistrationBuilder<TLimit, TActivatorData, TStyle> builder,
             params Service[] interceptorServices)
@@ -273,7 +273,7 @@ namespace Autofac.Extras.DynamicProxy
         /// <param name="builder">Registration to apply interception to.</param>
         /// <param name="interceptorServiceNames">The names of the interceptor services.</param>
         /// <returns>Registration builder allowing the registration to be configured.</returns>
-        /// <exception cref="System.ArgumentNullException">builder or interceptorServices</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="interceptorServiceNames"/>.</exception>
         public static IRegistrationBuilder<TLimit, TActivatorData, TStyle> InterceptedBy<TLimit, TActivatorData, TStyle>(
             this IRegistrationBuilder<TLimit, TActivatorData, TStyle> builder,
             params string[] interceptorServiceNames)
@@ -295,7 +295,7 @@ namespace Autofac.Extras.DynamicProxy
         /// <param name="builder">Registration to apply interception to.</param>
         /// <param name="interceptorServiceTypes">The types of the interceptor services.</param>
         /// <returns>Registration builder allowing the registration to be configured.</returns>
-        /// <exception cref="System.ArgumentNullException">builder or interceptorServices</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="interceptorServiceTypes"/>.</exception>
         public static IRegistrationBuilder<TLimit, TActivatorData, TStyle> InterceptedBy<TLimit, TActivatorData, TStyle>(
             this IRegistrationBuilder<TLimit, TActivatorData, TStyle> builder,
             params Type[] interceptorServiceTypes)
