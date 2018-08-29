@@ -136,7 +136,7 @@ namespace Autofac.Extras.DynamicProxy
             registration.ActivatorData.ImplementationType =
                 ProxyGenerator.ProxyBuilder.CreateClassProxyType(
                     registration.ActivatorData.ImplementationType,
-                    additionalInterfaces ?? new Type[0],
+                    additionalInterfaces ?? Type.EmptyTypes,
                     options);
 
             var interceptorServices = GetInterceptorServicesFromAttributes(registration.ActivatorData.ImplementationType);
