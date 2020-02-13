@@ -39,9 +39,14 @@ namespace Autofac.Extras.DynamicProxy.Test
         public void FindsInterceptionAttributeOnReflectionComponent()
         {
             var builder = new ContainerBuilder();
-            builder.RegisterType<C>().As<IHasI>().EnableInterfaceInterceptors();
+
+            builder.RegisterType<C>().As<IHasI>()
+                .EnableInterfaceInterceptors();
+
             builder.RegisterType<AddOneInterceptor>();
-            var cpt = builder.Build().Resolve<IHasI>();
+
+            var container = builder.Build();
+            var cpt = container.Resolve<IHasI>();
 
             Assert.Equal(11, cpt.GetI()); // proxied
         }
