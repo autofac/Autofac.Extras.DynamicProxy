@@ -34,7 +34,7 @@ namespace Autofac.Extras.DynamicProxy.Test
             Assert.Equal(i + 1, got);
         }
 
-        [Fact(Skip = "Issue #14")]
+        [Fact]
         public void ThrowsIfParametersAreNotMet()
         {
             // Issue #14: Resolving an intercepted type where dependencies aren't met should throw
