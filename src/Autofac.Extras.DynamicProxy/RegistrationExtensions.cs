@@ -30,6 +30,7 @@ using System.Linq;
 using System.Reflection;
 using Autofac.Builder;
 using Autofac.Core;
+using Autofac.Core.Resolving.Pipeline;
 using Autofac.Features.Scanning;
 using Castle.DynamicProxy;
 
@@ -188,11 +189,13 @@ namespace Autofac.Extras.DynamicProxy
                 throw new ArgumentNullException(nameof(registration));
             }
 
-            registration.RegistrationData.ActivatingHandlers.Add((_, e) =>
+            registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, (ctxt, next) =>
             {
-                EnsureInterfaceInterceptionApplies(e.Component);
+                next(ctxt);
 
-                var proxiedInterfaces = e.Instance
+                EnsureInterfaceInterceptionApplies(ctxt.Registration);
+
+                var proxiedInterfaces = ctxt.Instance
                     .GetType()
                     .GetInterfaces()
                     .Where(ProxyUtil.IsAccessible)
@@ -206,15 +209,15 @@ namespace Autofac.Extras.DynamicProxy
                 var theInterface = proxiedInterfaces.First();
                 var interfaces = proxiedInterfaces.Skip(1).ToArray();
 
-                var interceptors = GetInterceptorServices(e.Component, e.Instance.GetType())
-                    .Select(s => e.Context.ResolveService(s))
+                var interceptors = GetInterceptorServices(ctxt.Registration, ctxt.Instance.GetType())
+                    .Select(s => ctxt.ResolveService(s))
                     .Cast<IInterceptor>()
                     .ToArray();
 
-                e.Instance = options == null
-                    ? ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, e.Instance, interceptors)
-                    : ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, e.Instance, options, interceptors);
-            });
+                ctxt.Instance = options == null
+                    ? ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctxt.Instance, interceptors)
+                    : ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctxt.Instance, options, interceptors);
+            }));
 
             return registration;
         }
@@ -326,30 +329,32 @@ namespace Autofac.Extras.DynamicProxy
                 throw new ArgumentNullException(nameof(registration));
             }
 
-            registration.RegistrationData.ActivatingHandlers.Add((sender, e) =>
+            registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, (ctxt, next) =>
             {
-                EnsureInterfaceInterceptionApplies(e.Component);
+                next(ctxt);
 
-                if (!RemotingServices.IsTransparentProxy(e.Instance))
+                EnsureInterfaceInterceptionApplies(ctxt.Registration);
+
+                if (!RemotingServices.IsTransparentProxy(ctxt.Instance))
                 {
                     throw new DependencyResolutionException(string.Format(
-                    CultureInfo.CurrentCulture, RegistrationExtensionsResources.TypeIsNotTransparentProxy, e.Instance.GetType().FullName));
+                    CultureInfo.CurrentCulture, RegistrationExtensionsResources.TypeIsNotTransparentProxy, ctxt.Instance.GetType().FullName));
                 }
 
-                var instanceType = e.Instance.GetType();
+                var instanceType = ctxt.Instance.GetType();
                 var instanceTypeInfo = instanceType.GetTypeInfo();
                 if (!instanceTypeInfo.IsInterface)
                 {
                     throw new DependencyResolutionException(string.Format(
-                    CultureInfo.CurrentCulture, RegistrationExtensionsResources.TransparentProxyIsNotInterface, e.Instance.GetType().FullName));
+                    CultureInfo.CurrentCulture, RegistrationExtensionsResources.TransparentProxyIsNotInterface, ctxt.Instance.GetType().FullName));
                 }
 
                 if (additionalInterfacesToProxy.Any())
                 {
-                    var remotingTypeInfo = (IRemotingTypeInfo)RemotingServices.GetRealProxy(e.Instance);
+                    var remotingTypeInfo = (IRemotingTypeInfo)RemotingServices.GetRealProxy(ctxt.Instance);
 
                     var invalidInterfaces = additionalInterfacesToProxy
-                    .Where(i => !remotingTypeInfo.CanCastTo(i, e.Instance))
+                    .Where(i => !remotingTypeInfo.CanCastTo(i, ctxt.Instance))
                     .ToArray();
 
                     if (invalidInterfaces.Any())
@@ -362,15 +367,15 @@ namespace Autofac.Extras.DynamicProxy
                     }
                 }
 
-                var interceptors = GetInterceptorServices(e.Component, instanceType)
-                    .Select(s => e.Context.ResolveService(s))
+                var interceptors = GetInterceptorServices(ctxt.Registration, instanceType)
+                    .Select(s => ctxt.ResolveService(s))
                     .Cast<IInterceptor>()
                     .ToArray();
 
-                e.Instance = options == null
-                ? ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, e.Instance, interceptors)
-                : ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, e.Instance, options, interceptors);
-            });
+                ctxt.Instance = options == null
+                ? ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, ctxt.Instance, interceptors)
+                : ProxyGenerator.CreateInterfaceProxyWithTargetInterface(instanceType, additionalInterfacesToProxy, ctxt.Instance, options, interceptors);
+            }));
 
             return registration;
         }
