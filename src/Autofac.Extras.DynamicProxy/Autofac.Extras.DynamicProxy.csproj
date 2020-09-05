@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Release notes are at https://github.com/autofac/Autofac.Extras.DynamicProxy/releases</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://autofac.org</PackageProjectUrl>
-    <PackageLicenseUrl>https://opensource.org/licenses/mit-license.php</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/autofac/Autofac.Extras.DynamicProxy</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
