@@ -189,7 +189,7 @@ namespace Autofac.Extras.DynamicProxy
                 throw new ArgumentNullException(nameof(registration));
             }
 
-            registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, (ctxt, next) =>
+            registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, MiddlewareInsertionMode.StartOfPhase, (ctxt, next) =>
             {
                 next(ctxt);
 
