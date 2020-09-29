@@ -1,6 +1,10 @@
-########################
+﻿########################
 # THE BUILD!
 ########################
+
+param (
+    [switch]$Bench = $false
+)
 
 Push-Location $PSScriptRoot
 try {
@@ -40,7 +44,13 @@ try {
 
     # Test
     Write-Message "Executing unit tests"
-    Get-DotNetProjectDirectory -RootPath $PSScriptRoot\test | Invoke-Test
+    Get-DotNetProjectDirectory -RootPath $PSScriptRoot\test | Where-Object { $_ -inotlike "*Autofac.Extras.DynamicProxy.Test.SatelliteAssembly" } | Invoke-Test
+
+    # Benchmark
+    if ($Bench) {
+        Get-DotNetProjectDirectory -RootPath $PSScriptRoot\bench | Invoke-Test
+        Get-ChildItem -Path $PSScriptRoot\bench -Filter "BenchmarkDotNet.Artifacts" -Directory -Recurse | Move-Item -Destination "$PSScriptRoot\artifacts\benchmarks"
+    }
 
     if ($env:CI -eq "true") {
         # Generate Coverage Report
