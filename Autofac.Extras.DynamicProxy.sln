@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autofac.Extras.DynamicProxy", "src\Autofac.Extras.DynamicProxy\Autofac.Extras.DynamicProxy.csproj", "{20325C68-5988-4AEE-954C-2418901AF12E}"
 EndProject
@@ -11,11 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autofac.Extras.DynamicProxy
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5BC3A940-88FD-4AD5-9094-E141CDFF2DBC}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		build.ps1 = build.ps1
 		global.json = global.json
 		NuGet.Config = NuGet.Config
-		.gitignore = .gitignore
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Autofac.Extras.DynamicProxy.Benchmarks", "bench\Autofac.Extras.DynamicProxy.Benchmarks\Autofac.Extras.DynamicProxy.Benchmarks.csproj", "{5F022611-2C3D-49C8-A6CE-8B4EEA93D4F9}"
