@@ -27,7 +27,7 @@ namespace Autofac.Extras.DynamicProxy.Test
             Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
         }
 
-        [Fact(Skip = "https://github.com/autofac/Autofac/issues/758")]
+        [Fact]
         public void InterfaceInterceptorsSupportCircularPropertyInjection()
         {
             var builder = new ContainerBuilder();
