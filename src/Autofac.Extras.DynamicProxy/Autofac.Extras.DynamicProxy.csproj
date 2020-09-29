@@ -36,7 +36,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.0.0-develop-01132" />
+    <PackageReference Include="Autofac" Version="6.0.0" />
     <PackageReference Include="Castle.Core" Version="4.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.0">
       <PrivateAssets>All</PrivateAssets>
