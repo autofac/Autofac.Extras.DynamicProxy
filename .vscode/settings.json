@@ -1,0 +1,10 @@
+{
+  "cSpell.words": [
+    "autofac",
+    "cref",
+    "xunit"
+  ],
+  "dotnet-test-explorer.testProjectPath": "test/**/*Test.csproj",
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.enableRoslynAnalyzers": true
+}

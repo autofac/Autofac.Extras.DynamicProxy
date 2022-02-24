@@ -12,7 +12,10 @@ try {
 
     $artifactsPath = "$PSScriptRoot/artifacts"
     $packagesPath = "$artifactsPath/packages"
-    $sdkVersion = (Get-Content "$PSScriptRoot/global.json" | ConvertFrom-Json).sdk.version
+
+    $globalJson = (Get-Content "$PSScriptRoot/global.json" | ConvertFrom-Json -NoEnumerate);
+
+    $sdkVersion = $globalJson.sdk.version
 
     # Clean up artifacts folder
     if (Test-Path $artifactsPath) {
@@ -20,9 +23,18 @@ try {
         Remove-Item $artifactsPath -Force -Recurse
     }
 
-    # Install dotnet CLI
-    Write-Message "Installing .NET Core SDK version $sdkVersion"
-    Install-DotNetCli -Version $sdkVersion
+    # Install dotnet SDK versions during CI. In a local build we assume you have
+    # everything installed; on CI we'll force the install. If you install _any_
+    # SDKs, you have to install _all_ of them because you can't install SDKs in
+    # two different locations. dotnet CLI locates SDKs relative to the
+    # executable.
+    if ($Null -ne $env:APPVEYOR_BUILD_NUMBER) {
+        Install-DotNetCli -Version $sdkVersion
+        foreach ($additional in $globalJson.additionalSdks)
+        {
+            Install-DotNetCli -Version $additional;
+        }
+    }
 
     # Write out dotnet information
     & dotnet --info
@@ -56,7 +68,7 @@ try {
         # Generate Coverage Report
         Write-Message "Generating Codecov Report"
         Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        & bash codecov.sh -f "coverage.info"
+        & bash codecov.sh -f "artifacts/coverage/*/coverage*.info"
     }
 
     # Finished

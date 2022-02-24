@@ -1,80 +1,80 @@
-﻿using System;
+﻿// Copyright (c) Autofac Project. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using Autofac.Core;
 using Castle.DynamicProxy;
-using Xunit;
 
-namespace Autofac.Extras.DynamicProxy.Test
+namespace Autofac.Extras.DynamicProxy.Test;
+
+public class AttributedInterfaceInterceptionFixture
 {
-    public class AttributedInterfaceInterceptionFixture
+    [Intercept(typeof(AddOneInterceptor))]
+    public interface IHasI
     {
-        [Intercept(typeof(AddOneInterceptor))]
-        public interface IHasI
+        int GetI();
+    }
+
+    [Fact]
+    public void DetectsNonInterfaceServices()
+    {
+        var builder = new ContainerBuilder();
+        builder.RegisterType<C>().EnableInterfaceInterceptors();
+        builder.RegisterType<AddOneInterceptor>();
+        var c = builder.Build();
+        var dx = Assert.Throws<DependencyResolutionException>(() => c.Resolve<C>());
+        Assert.IsType<InvalidOperationException>(dx.InnerException);
+    }
+
+    [Fact]
+    public void FindsInterceptionAttributeOnExpressionComponent()
+    {
+        var builder = new ContainerBuilder();
+        builder.Register(c => new C()).As<IHasI>().EnableInterfaceInterceptors();
+        builder.RegisterType<AddOneInterceptor>();
+        var cpt = builder.Build().Resolve<IHasI>();
+
+        Assert.Equal(11, cpt.GetI()); // proxied
+    }
+
+    [Fact]
+    public void FindsInterceptionAttributeOnReflectionComponent()
+    {
+        var builder = new ContainerBuilder();
+
+        builder.RegisterType<C>().As<IHasI>()
+            .EnableInterfaceInterceptors();
+
+        builder.RegisterType<AddOneInterceptor>();
+
+        var container = builder.Build();
+        var cpt = container.Resolve<IHasI>();
+
+        Assert.Equal(11, cpt.GetI()); // proxied
+    }
+
+    public class C : IHasI
+    {
+        public C()
         {
-            int GetI();
+            I = 10;
         }
 
-        [Fact]
-        public void DetectsNonInterfaceServices()
+        public int I { get; private set; }
+
+        public int GetI()
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<C>().EnableInterfaceInterceptors();
-            builder.RegisterType<AddOneInterceptor>();
-            var c = builder.Build();
-            var dx = Assert.Throws<DependencyResolutionException>(() => c.Resolve<C>());
-            Assert.IsType<InvalidOperationException>(dx.InnerException);
+            return I;
         }
+    }
 
-        [Fact]
-        public void FindsInterceptionAttributeOnExpressionComponent()
+    private class AddOneInterceptor : IInterceptor
+    {
+        public void Intercept(IInvocation invocation)
         {
-            var builder = new ContainerBuilder();
-            builder.Register(c => new C()).As<IHasI>().EnableInterfaceInterceptors();
-            builder.RegisterType<AddOneInterceptor>();
-            var cpt = builder.Build().Resolve<IHasI>();
-
-            Assert.Equal(11, cpt.GetI()); // proxied
-        }
-
-        [Fact]
-        public void FindsInterceptionAttributeOnReflectionComponent()
-        {
-            var builder = new ContainerBuilder();
-
-            builder.RegisterType<C>().As<IHasI>()
-                .EnableInterfaceInterceptors();
-
-            builder.RegisterType<AddOneInterceptor>();
-
-            var container = builder.Build();
-            var cpt = container.Resolve<IHasI>();
-
-            Assert.Equal(11, cpt.GetI()); // proxied
-        }
-
-        public class C : IHasI
-        {
-            public C()
+            invocation.Proceed();
+            if (invocation.Method.Name == "GetI")
             {
-                I = 10;
-            }
-
-            public int I { get; private set; }
-
-            public int GetI()
-            {
-                return I;
-            }
-        }
-
-        private class AddOneInterceptor : IInterceptor
-        {
-            public void Intercept(IInvocation invocation)
-            {
-                invocation.Proceed();
-                if (invocation.Method.Name == "GetI")
-                {
-                    invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
-                }
+                invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }
         }
     }
