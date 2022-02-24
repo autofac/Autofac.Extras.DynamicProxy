@@ -9,6 +9,7 @@ namespace Autofac.Extras.DynamicProxy;
 /// <summary>
 /// Indicates that a type should be intercepted.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
 [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
