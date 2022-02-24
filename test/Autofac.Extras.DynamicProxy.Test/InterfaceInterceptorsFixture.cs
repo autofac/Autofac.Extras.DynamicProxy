@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Autofac.Builder;
 using Autofac.Core;
 using Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
 using Castle.DynamicProxy;
@@ -24,6 +25,18 @@ public class InterfaceInterceptorsFixture
     private interface IPrivateInterface
     {
         string PrivateMethod();
+    }
+
+    [Fact]
+    public void EnableInterfaceInterceptors_NullRegistration()
+    {
+        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle> concrete = null;
+        IRegistrationBuilder<Interceptable, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle> scanning = null;
+        var options = new ProxyGenerationOptions();
+        Assert.Throws<ArgumentNullException>(() => concrete.EnableInterfaceInterceptors());
+        Assert.Throws<ArgumentNullException>(() => concrete.EnableInterfaceInterceptors(options));
+        Assert.Throws<ArgumentNullException>(() => scanning.EnableInterfaceInterceptors());
+        Assert.Throws<ArgumentNullException>(() => scanning.EnableInterfaceInterceptors(options));
     }
 
     [Fact]

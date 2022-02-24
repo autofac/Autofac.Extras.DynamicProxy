@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Autofac Project. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Autofac.Builder;
 using Autofac.Core;
 using Castle.DynamicProxy;
 
@@ -8,6 +9,18 @@ namespace Autofac.Extras.DynamicProxy.Test;
 
 public class ClassInterceptorsFixture
 {
+    [Fact]
+    public void EnableClassInterceptors_NullRegistration()
+    {
+        IRegistrationBuilder<D, ConcreteReflectionActivatorData, SingleRegistrationStyle> concrete = null;
+        IRegistrationBuilder<D, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle> scanning = null;
+        var options = new ProxyGenerationOptions();
+        Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors());
+        Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors(options));
+        Assert.Throws<ArgumentNullException>(() => scanning.EnableClassInterceptors());
+        Assert.Throws<ArgumentNullException>(() => scanning.EnableClassInterceptors(options));
+    }
+
     [Fact]
     public void InterceptorCanBeWiredUsingInterceptedBy()
     {
