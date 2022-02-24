@@ -199,7 +199,8 @@ function Invoke-Test {
                 /p:CoverletOutput="../../artifacts/coverage/$($Project.Name)/" `
                 /p:CoverletOutputFormat="json%2clcov" `
                 /p:ExcludeByAttribute=CompilerGeneratedAttribute `
-                /p:ExcludeByAttribute=GeneratedCodeAttribute
+                /p:ExcludeByAttribute=GeneratedCodeAttribute `
+                /p:Exclude="[Autofac.Extras.DynamicProxy.Test.SatelliteAssembly]*"
 
             if ($LASTEXITCODE -ne 0) {
                 Pop-Location
