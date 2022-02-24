@@ -17,6 +17,32 @@
       },
       "problemMatcher": "$msCompile",
       "type": "shell"
+    },
+    {
+      "args": [
+        "test",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary",
+        "--results-directory",
+        "\"../../../../artifacts/log\"",
+        "--logger:trx",
+        "/p:CoverletOutput=\"${workspaceFolder}/artifacts/coverage/\"",
+        "/p:CollectCoverage=true",
+        "/p:CoverletOutputFormat=lcov",
+        "/p:Exclude=\"[Autofac.Extras.DynamicProxy.Test.SatelliteAssembly]*\"",
+        "-m:1"
+      ],
+      "command": "dotnet",
+      "group": {
+        "isDefault": true,
+        "kind": "test"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/test/Autofac.Extras.DynamicProxy.Test"
+      },
+      "label": "test",
+      "problemMatcher": "$msCompile",
+      "type": "process"
     }
   ],
   "version": "2.0.0"
