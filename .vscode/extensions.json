@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "davidanson.vscode-markdownlint",
+    "editorconfig.editorconfig",
+    "formulahendry.dotnet-test-explorer",
+    "ms-dotnettools.csharp",
+    "ryanluker.vscode-coverage-gutters"
+  ]
+}

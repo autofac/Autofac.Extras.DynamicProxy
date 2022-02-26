@@ -1,0 +1,14 @@
+{
+  "cSpell.words": [
+    "autofac",
+    "cref",
+    "xunit"
+  ],
+  "coverage-gutters.coverageBaseDir": "artifacts/coverage",
+  "coverage-gutters.coverageFileNames": [
+    "coverage.info"
+  ],
+  "dotnet-test-explorer.testProjectPath": "test/**/*Test.csproj",
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.enableRoslynAnalyzers": true
+}

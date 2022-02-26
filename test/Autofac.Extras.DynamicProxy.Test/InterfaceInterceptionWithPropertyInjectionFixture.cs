@@ -1,92 +1,92 @@
-﻿using System;
+﻿// Copyright (c) Autofac Project. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using Castle.DynamicProxy;
-using Xunit;
 
-namespace Autofac.Extras.DynamicProxy.Test
+namespace Autofac.Extras.DynamicProxy.Test;
+
+public class InterfaceInterceptionWithPropertyInjectionFixture
 {
-    public class InterfaceInterceptionWithPropertyInjectionFixture
+    [Fact]
+    public void InterfaceInterceptorsSupportPropertyInjection()
     {
-        [Fact]
-        public void InterfaceInterceptorsSupportPropertyInjection()
+        var builder = new ContainerBuilder();
+        builder.RegisterType<StringMethodInterceptor>();
+
+        builder.RegisterType<OtherImpl>().As<IOtherService>();
+
+        builder
+            .RegisterType<InterceptableWithProperty>()
+            .PropertiesAutowired()
+            .EnableInterfaceInterceptors()
+            .InterceptedBy(typeof(StringMethodInterceptor))
+            .As<IPublicInterface>();
+        var container = builder.Build();
+        var obj = container.Resolve<IPublicInterface>();
+
+        Assert.NotNull(obj.GetServiceProperty());
+        Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
+    }
+
+    [Fact]
+    public void InterfaceInterceptorsSupportCircularPropertyInjection()
+    {
+        var builder = new ContainerBuilder();
+        builder.RegisterType<StringMethodInterceptor>();
+
+        builder.RegisterType<OtherImpl>().As<IOtherService>();
+
+        builder
+            .RegisterType<InterceptableWithProperty>()
+            .As<IPublicInterface>()
+            .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
+            .EnableInterfaceInterceptors()
+            .InterceptedBy(typeof(StringMethodInterceptor));
+        var container = builder.Build();
+        var obj = container.Resolve<IPublicInterface>();
+
+        Assert.NotNull(obj.GetServiceProperty());
+        Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
+    }
+
+    public interface IOtherService
+    {
+    }
+
+    public class OtherImpl : IOtherService
+    {
+    }
+
+    public interface IPublicInterface
+    {
+        string PublicMethod();
+
+        IOtherService GetServiceProperty();
+    }
+
+    public class InterceptableWithProperty : IPublicInterface
+    {
+        public IOtherService ServiceProperty { get; set; }
+
+        public IOtherService GetServiceProperty() => ServiceProperty;
+
+        public string PublicMethod()
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<StringMethodInterceptor>();
-
-            builder.RegisterType<OtherImpl>().As<IOtherService>();
-
-            builder
-                .RegisterType<InterceptableWithProperty>()
-                .PropertiesAutowired()
-                .EnableInterfaceInterceptors()
-                .InterceptedBy(typeof(StringMethodInterceptor))
-                .As<IPublicInterface>();
-            var container = builder.Build();
-            var obj = container.Resolve<IPublicInterface>();
-
-            Assert.NotNull(obj.GetServiceProperty());
-            Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
+            throw new NotImplementedException();
         }
+    }
 
-        [Fact]
-        public void InterfaceInterceptorsSupportCircularPropertyInjection()
+    private class StringMethodInterceptor : IInterceptor
+    {
+        public void Intercept(IInvocation invocation)
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<StringMethodInterceptor>();
-
-            builder.RegisterType<OtherImpl>().As<IOtherService>();
-
-            builder
-                .RegisterType<InterceptableWithProperty>()
-                .As<IPublicInterface>()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
-                .EnableInterfaceInterceptors()
-                .InterceptedBy(typeof(StringMethodInterceptor));
-            var container = builder.Build();
-            var obj = container.Resolve<IPublicInterface>();
-
-            Assert.NotNull(obj.GetServiceProperty());
-            Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
-        }
-
-        public interface IOtherService
-        {
-        }
-
-        public class OtherImpl : IOtherService
-        {
-        }
-
-        public interface IPublicInterface
-        {
-            string PublicMethod();
-
-            IOtherService GetServiceProperty();
-        }
-
-        public class InterceptableWithProperty : IPublicInterface
-        {
-            public IOtherService ServiceProperty { get; set; }
-
-            public IOtherService GetServiceProperty() => ServiceProperty;
-
-            public string PublicMethod()
+            if (invocation.Method.ReturnType == typeof(string))
             {
-                throw new NotImplementedException();
+                invocation.ReturnValue = "intercepted-" + invocation.Method.Name;
             }
-        }
-
-        private class StringMethodInterceptor : IInterceptor
-        {
-            public void Intercept(IInvocation invocation)
+            else
             {
-                if (invocation.Method.ReturnType == typeof(string))
-                {
-                    invocation.ReturnValue = "intercepted-" + invocation.Method.Name;
-                }
-                else
-                {
-                    invocation.Proceed();
-                }
+                invocation.Proceed();
             }
         }
     }
