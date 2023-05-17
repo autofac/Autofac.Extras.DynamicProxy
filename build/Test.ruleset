@@ -4,6 +4,10 @@
   <Rules AnalyzerId="Microsoft.Usage" RuleNamespace="Microsoft.Usage">
     <!-- Implement standard exception constructors - not all of the exception constructors (e.g., parameterless) are desired in our system. -->
     <Rule Id="CA1032" Action="None" />
+    <!-- Do not nest types - we do that special for the DynamicProxy testing because there are lots of overlapping scenarios to test and interfaces/classes do need to be public. -->
+    <Rule Id="CA1034" Action="None" />
+    <!-- Identifiers should not contain underscores - underscores are helpful in test naming. -->
+    <Rule Id="CA1707" Action="None" />
     <!-- Change names to avoid reserved word overlaps (e.g., Delegate, GetType, etc.) - too many of these in the public API, we'd break if we fixed it. -->
     <Rule Id="CA1716" Action="None" />
     <!-- Change Dispose() to call GC.SuppressFinalize - in tests we don't really care and it can impact readability. -->
@@ -32,6 +36,8 @@
     <Rule Id="SA1203" Action="None" />
     <!-- Enforce order of static vs. non-static members -->
     <Rule Id="SA1204" Action="None" />
+    <!-- Modifiers are not ordered - .editorconfig handles this -->
+    <Rule Id="SA1206" Action="None" />
     <!-- Enforce order of readonly vs. non-readonly members -->
     <Rule Id="SA1214" Action="None" />
     <!-- Fields can't start with underscore -->
