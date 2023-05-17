@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Autofac Project. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using Autofac.Builder;
 using Autofac.Core;
 using Castle.DynamicProxy;
@@ -32,7 +33,7 @@ public class ClassInterceptorsFixture
         var container = builder.Build();
         var i = 10;
         var c = container.Resolve<D>(TypedParameter.From(i));
-        var got = c.GetI();
+        var got = c.GetValueByMethod();
         Assert.Equal(i + 1, got);
     }
 
@@ -45,7 +46,7 @@ public class ClassInterceptorsFixture
         var container = builder.Build();
         var i = 10;
         var c = container.Resolve<C>(TypedParameter.From(i));
-        var got = c.GetI();
+        var got = c.GetValueByMethod();
         Assert.Equal(i + 1, got);
     }
 
@@ -98,7 +99,7 @@ public class ClassInterceptorsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetI")
+            if (invocation.Method.Name == "GetValueByMethod")
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }
@@ -110,14 +111,14 @@ public class ClassInterceptorsFixture
     {
         public C(int i)
         {
-            I = i;
+            Value = i;
         }
 
-        public int I { get; set; }
+        public int Value { get; set; }
 
-        public virtual int GetI()
+        public virtual int GetValueByMethod()
         {
-            return I;
+            return Value;
         }
     }
 
@@ -125,17 +126,18 @@ public class ClassInterceptorsFixture
     {
         public D(int i)
         {
-            I = i;
+            Value = i;
         }
 
-        public int I { get; set; }
+        public int Value { get; set; }
 
-        public virtual int GetI()
+        public virtual int GetValueByMethod()
         {
-            return I;
+            return Value;
         }
     }
 
+    [SuppressMessage("CA1711", "CA1711", Justification = "This isn't a delegate, the suffix 'Delegate' is descriptive of the test case.")]
     public class ClassWithDelegate
     {
         public delegate ClassWithDelegate Factory(int i);

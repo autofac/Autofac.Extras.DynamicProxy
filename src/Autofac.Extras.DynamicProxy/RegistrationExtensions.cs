@@ -153,20 +153,25 @@ public static class RegistrationExtensions
     /// <param name="options">Proxy generation options to apply.</param>
     /// <returns>Registration builder allowing the registration to be configured.</returns>
     public static IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> EnableInterfaceInterceptors<TLimit, TActivatorData, TSingleRegistrationStyle>(
-        this IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> registration, ProxyGenerationOptions options = null)
+        this IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> registration, ProxyGenerationOptions? options = null)
     {
         if (registration == null)
         {
             throw new ArgumentNullException(nameof(registration));
         }
 
-        registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, MiddlewareInsertionMode.StartOfPhase, (ctxt, next) =>
+        registration.ConfigurePipeline(p => p.Use(PipelinePhase.Activation, MiddlewareInsertionMode.StartOfPhase, (ctx, next) =>
         {
-            next(ctxt);
+            next(ctx);
 
-            EnsureInterfaceInterceptionApplies(ctxt.Registration);
+            EnsureInterfaceInterceptionApplies(ctx.Registration);
 
-            var proxiedInterfaces = ctxt.Instance
+            if (ctx.Instance is null)
+            {
+                return;
+            }
+
+            var proxiedInterfaces = ctx.Instance
                 .GetType()
                 .GetInterfaces()
                 .Where(ProxyUtil.IsAccessible)
@@ -180,14 +185,14 @@ public static class RegistrationExtensions
             var theInterface = proxiedInterfaces.First();
             var interfaces = proxiedInterfaces.Skip(1).ToArray();
 
-            var interceptors = GetInterceptorServices(ctxt.Registration, ctxt.Instance.GetType())
-                .Select(s => ctxt.ResolveService(s))
+            var interceptors = GetInterceptorServices(ctx.Registration, ctx.Instance.GetType())
+                .Select(s => ctx.ResolveService(s))
                 .Cast<IInterceptor>()
                 .ToArray();
 
-            ctxt.Instance = options == null
-                ? ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctxt.Instance, interceptors)
-                : ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctxt.Instance, options, interceptors);
+            ctx.Instance = options == null
+                ? ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, interceptors)
+                : ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, options, interceptors);
         }));
 
         return registration;
@@ -286,10 +291,10 @@ public static class RegistrationExtensions
         IEnumerable<Service> interceptorServices,
         string metadataKey)
     {
-        if (builder.RegistrationData.Metadata.TryGetValue(metadataKey, out object existing))
+        if (builder.RegistrationData.Metadata.TryGetValue(metadataKey, out object? existing) && existing is IEnumerable<Service> existingServices)
         {
             builder.RegistrationData.Metadata[metadataKey] =
-                ((IEnumerable<Service>)existing).Concat(interceptorServices).Distinct();
+                existingServices.Concat(interceptorServices).Distinct();
         }
         else
         {
@@ -311,13 +316,13 @@ public static class RegistrationExtensions
 
         var result = EmptyServices;
 
-        if (registration.Metadata.TryGetValue(InterceptorsPropertyName, out object services))
+        if (registration.Metadata.TryGetValue(InterceptorsPropertyName, out object? services) && services is IEnumerable<Service> existingPropertyServices)
         {
-            result = result.Concat((IEnumerable<Service>)services);
+            result = result.Concat(existingPropertyServices);
         }
 
-        return registration.Metadata.TryGetValue(AttributeInterceptorsPropertyName, out services)
-            ? result.Concat((IEnumerable<Service>)services)
+        return (registration.Metadata.TryGetValue(AttributeInterceptorsPropertyName, out services) && services is IEnumerable<Service> existingAttributeServices)
+            ? result.Concat(existingAttributeServices)
             : result.Concat(GetInterceptorServicesFromAttributes(implType));
     }
 

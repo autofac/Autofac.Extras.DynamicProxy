@@ -43,7 +43,7 @@ public class InterfaceInterceptorsFixture
     public void InterceptsInternalInterfacesWithInternalsVisibleToDynamicProxyGenAssembly2()
     {
         var internalsAttribute = typeof(InterfaceInterceptorsFixture).GetTypeInfo().Assembly.GetCustomAttribute<InternalsVisibleToAttribute>();
-        Assert.Contains("DynamicProxyGenAssembly2", internalsAttribute.AssemblyName);
+        Assert.Contains("DynamicProxyGenAssembly2", internalsAttribute.AssemblyName, StringComparison.Ordinal);
 
         var builder = new ContainerBuilder();
         builder.RegisterType<StringMethodInterceptor>();

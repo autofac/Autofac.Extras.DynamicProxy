@@ -105,7 +105,7 @@ public class InterceptorsChosenByMetadataWithOptionsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name.StartsWith("Get"))
+            if (invocation.Method.Name.StartsWith("Get", StringComparison.Ordinal))
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }
@@ -136,7 +136,7 @@ public class InterceptorsChosenByMetadataWithOptionsFixture
 
         public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
         {
-            return methodInfo.Name.Equals("GetUniqueVisitorCount");
+            return methodInfo.Name.Equals("GetUniqueVisitorCount", StringComparison.Ordinal);
         }
     }
 

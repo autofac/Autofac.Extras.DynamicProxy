@@ -46,7 +46,7 @@ public class InterceptorsChosenByMetadataFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name.StartsWith("Get"))
+            if (invocation.Method.Name.StartsWith("Get", StringComparison.Ordinal))
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }

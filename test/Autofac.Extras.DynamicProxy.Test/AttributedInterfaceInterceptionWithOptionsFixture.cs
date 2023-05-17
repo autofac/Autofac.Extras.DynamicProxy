@@ -10,11 +10,11 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
 {
     [Intercept(typeof(AddOneInterceptor))]
     [Intercept(typeof(AddTenInterceptor))]
-    public interface IHasIAndJ
+    public interface IHasTwoValues
     {
-        int GetI();
+        int GetFirstValueByMethod();
 
-        int GetJ();
+        int GetSecondValueByMethod();
     }
 
     [Fact]
@@ -24,10 +24,10 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
         options.AddMixinInstance(new Dictionary<int, int>());
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().As<IHasIAndJ>().EnableInterfaceInterceptors(options);
+        builder.RegisterType<Service>().As<IHasTwoValues>().EnableInterfaceInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
-        var cpt = builder.Build().Resolve<IHasIAndJ>();
+        var cpt = builder.Build().Resolve<IHasTwoValues>();
 
         var dict = cpt as IDictionary<int, int>;
 
@@ -48,49 +48,49 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
         var options = new ProxyGenerationOptions { Selector = new MyInterceptorSelector() };
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().As<IHasIAndJ>().EnableInterfaceInterceptors(options);
+        builder.RegisterType<Service>().As<IHasTwoValues>().EnableInterfaceInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
-        var cpt = builder.Build().Resolve<IHasIAndJ>();
+        var cpt = builder.Build().Resolve<IHasTwoValues>();
 
-        Assert.Equal(11, cpt.GetI());
-        Assert.Equal(20, cpt.GetJ());
+        Assert.Equal(11, cpt.GetFirstValueByMethod());
+        Assert.Equal(20, cpt.GetSecondValueByMethod());
     }
 
     [Fact]
     public void CanInterceptOnlySpecificMethods()
     {
-        var options = new ProxyGenerationOptions(new InterceptOnlyJ());
+        var options = new ProxyGenerationOptions(new InterceptOnlySecondValue());
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().As<IHasIAndJ>().EnableInterfaceInterceptors(options);
+        builder.RegisterType<Service>().As<IHasTwoValues>().EnableInterfaceInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
-        var cpt = builder.Build().Resolve<IHasIAndJ>();
+        var cpt = builder.Build().Resolve<IHasTwoValues>();
 
-        Assert.Equal(10, cpt.GetI());
-        Assert.Equal(21, cpt.GetJ());
+        Assert.Equal(10, cpt.GetFirstValueByMethod());
+        Assert.Equal(21, cpt.GetSecondValueByMethod());
     }
 
-    public class C : IHasIAndJ
+    public class Service : IHasTwoValues
     {
-        public C()
+        public Service()
         {
-            I = J = 10;
+            FirstValue = SecondValue = 10;
         }
 
-        public int I { get; private set; }
+        public int FirstValue { get; private set; }
 
-        public int J { get; private set; }
+        public int SecondValue { get; private set; }
 
-        public int GetI()
+        public int GetFirstValueByMethod()
         {
-            return I;
+            return FirstValue;
         }
 
-        public int GetJ()
+        public int GetSecondValueByMethod()
         {
-            return J;
+            return SecondValue;
         }
     }
 
@@ -99,7 +99,7 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetI" || invocation.Method.Name == "GetJ")
+            if (invocation.Method.Name == "GetFirstValueByMethod" || invocation.Method.Name == "GetSecondValueByMethod")
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }
@@ -111,14 +111,14 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetJ")
+            if (invocation.Method.Name == "GetSecondValueByMethod")
             {
                 invocation.ReturnValue = 10 + (int)invocation.ReturnValue;
             }
         }
     }
 
-    private class InterceptOnlyJ : IProxyGenerationHook
+    private class InterceptOnlySecondValue : IProxyGenerationHook
     {
         public void MethodsInspected()
         {
@@ -130,7 +130,7 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
 
         public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
         {
-            return methodInfo.Name.Equals("GetJ");
+            return methodInfo.Name.Equals("GetSecondValueByMethod", StringComparison.Ordinal);
         }
     }
 
@@ -138,7 +138,7 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
     {
         public IInterceptor[] SelectInterceptors(Type type, MethodInfo method, IInterceptor[] interceptors)
         {
-            return method.Name == "GetI"
+            return method.Name == "GetFirstValueByMethod"
                 ? interceptors.OfType<AddOneInterceptor>().ToArray<IInterceptor>()
                 : interceptors.OfType<AddTenInterceptor>().ToArray<IInterceptor>();
         }
