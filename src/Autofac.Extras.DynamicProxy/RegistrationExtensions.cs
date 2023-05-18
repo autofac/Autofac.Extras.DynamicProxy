@@ -166,12 +166,8 @@ public static class RegistrationExtensions
 
             EnsureInterfaceInterceptionApplies(ctx.Registration);
 
-            if (ctx.Instance is null)
-            {
-                return;
-            }
-
-            var proxiedInterfaces = ctx.Instance
+            // The instance won't ever _practically_ be null by the time it gets here.
+            var proxiedInterfaces = ctx.Instance!
                 .GetType()
                 .GetInterfaces()
                 .Where(ProxyUtil.IsAccessible)
