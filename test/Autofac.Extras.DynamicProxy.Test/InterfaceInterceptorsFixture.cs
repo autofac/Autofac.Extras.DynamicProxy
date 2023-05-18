@@ -116,6 +116,68 @@ public class InterfaceInterceptorsFixture
         Assert.Throws<DependencyResolutionException>(() => container.Resolve<IPublicInterface>());
     }
 
+    [Fact]
+    public void NamedInterceptorService()
+    {
+        var builder = new ContainerBuilder();
+        builder
+            .RegisterType<StringMethodInterceptor>()
+            .Named<IInterceptor>("interceptor");
+        builder
+            .RegisterType<Interceptable>()
+            .EnableInterfaceInterceptors()
+            .InterceptedBy("interceptor")
+            .As<IPublicInterface>();
+        var container = builder.Build();
+        var obj = container.Resolve<IPublicInterface>();
+        Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
+    }
+
+    [Fact]
+    public void InterceptedBy_NullRegistration()
+    {
+        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle> registration = null;
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy(new KeyedService("name", typeof(IInterceptor))));
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy("name"));
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy(typeof(StringMethodInterceptor)));
+    }
+
+    [Fact]
+    public void InterceptedBy_NullServiceList()
+    {
+        var builder = new ContainerBuilder();
+        var registration = builder
+            .RegisterType<Interceptable>()
+            .EnableInterfaceInterceptors();
+
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((Service[])null));
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((Service)null));
+    }
+
+    [Fact]
+    public void InterceptedBy_NullNameList()
+    {
+        var builder = new ContainerBuilder();
+        var registration = builder
+            .RegisterType<Interceptable>()
+            .EnableInterfaceInterceptors();
+
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((string[])null));
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((string)null));
+    }
+
+    [Fact]
+    public void InterceptedBy_NullTypeList()
+    {
+        var builder = new ContainerBuilder();
+        var registration = builder
+            .RegisterType<Interceptable>()
+            .EnableInterfaceInterceptors();
+
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((Type[])null));
+        Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy((Type)null));
+    }
+
     public class Interceptable : IPublicInterface, IInternalInterface, IPrivateInterface
     {
         public string InternalMethod()
