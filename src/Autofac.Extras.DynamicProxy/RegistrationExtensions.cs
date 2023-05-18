@@ -304,16 +304,6 @@ public static class RegistrationExtensions
 
     private static IEnumerable<Service> GetInterceptorServices(IComponentRegistration registration, Type implType)
     {
-        if (registration == null)
-        {
-            throw new ArgumentNullException(nameof(registration));
-        }
-
-        if (implType == null)
-        {
-            throw new ArgumentNullException(nameof(implType));
-        }
-
         var result = EmptyServices;
 
         if (registration.Metadata.TryGetValue(InterceptorsPropertyName, out object? services) && services is IEnumerable<Service> existingPropertyServices)
