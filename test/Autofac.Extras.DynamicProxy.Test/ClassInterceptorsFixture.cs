@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Autofac.Builder;
 using Autofac.Core;
+using Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
 using Castle.DynamicProxy;
 
 namespace Autofac.Extras.DynamicProxy.Test;
@@ -94,6 +95,20 @@ public class ClassInterceptorsFixture
         }
     }
 
+    [Fact]
+    public void ClassInterceptorsFromAssemblyScanning()
+    {
+        var builder = new ContainerBuilder();
+        builder.RegisterType<StringMethodInterceptor>();
+        builder.RegisterAssemblyTypes(typeof(InterceptablePublicSatellite).Assembly)
+            .Where(t => t.Name.Equals(nameof(InterceptablePublicSatellite), StringComparison.Ordinal))
+            .EnableClassInterceptors()
+            .InterceptedBy(typeof(StringMethodInterceptor));
+        var container = builder.Build();
+        var obj = container.Resolve<InterceptablePublicSatellite>();
+        Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
+    }
+
     private class AddOneInterceptor : IInterceptor
     {
         public void Intercept(IInvocation invocation)
@@ -172,6 +187,21 @@ public class ClassInterceptorsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
+        }
+    }
+
+    private class StringMethodInterceptor : IInterceptor
+    {
+        public void Intercept(IInvocation invocation)
+        {
+            if (invocation.Method.ReturnType == typeof(string))
+            {
+                invocation.ReturnValue = "intercepted-" + invocation.Method.Name;
+            }
+            else
+            {
+                invocation.Proceed();
+            }
         }
     }
 }
