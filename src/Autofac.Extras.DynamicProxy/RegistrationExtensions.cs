@@ -207,7 +207,7 @@ public static class RegistrationExtensions
     /// <param name="builder">Registration to apply interception to.</param>
     /// <param name="interceptorServices">The interceptor services.</param>
     /// <returns>Registration builder allowing the registration to be configured.</returns>
-    /// <exception cref="System.ArgumentNullException"><paramref name="builder"/> or <paramref name="interceptorServices"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="interceptorServices"/>.</exception>
     public static IRegistrationBuilder<TLimit, TActivatorData, TStyle> InterceptedBy<TLimit, TActivatorData, TStyle>(
         this IRegistrationBuilder<TLimit, TActivatorData, TStyle> builder,
         params Service[] interceptorServices)
