@@ -5,12 +5,12 @@ namespace Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
 
 public class InterceptablePublicSatellite : IPublicInterfaceSatellite
 {
-    public string PublicMethod()
+    public virtual string PublicMethod()
     {
         throw new NotImplementedException();
     }
 
-    public string InternalMethod()
+    public virtual string InternalMethod()
     {
         throw new NotImplementedException();
     }

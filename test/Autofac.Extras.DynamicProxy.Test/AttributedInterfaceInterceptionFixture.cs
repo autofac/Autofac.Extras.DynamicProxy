@@ -9,19 +9,19 @@ namespace Autofac.Extras.DynamicProxy.Test;
 public class AttributedInterfaceInterceptionFixture
 {
     [Intercept(typeof(AddOneInterceptor))]
-    public interface IHasI
+    public interface IHasValue
     {
-        int GetI();
+        int GetValueByMethod();
     }
 
     [Fact]
     public void DetectsNonInterfaceServices()
     {
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().EnableInterfaceInterceptors();
+        builder.RegisterType<Service>().EnableInterfaceInterceptors();
         builder.RegisterType<AddOneInterceptor>();
         var c = builder.Build();
-        var dx = Assert.Throws<DependencyResolutionException>(() => c.Resolve<C>());
+        var dx = Assert.Throws<DependencyResolutionException>(() => c.Resolve<Service>());
         Assert.IsType<InvalidOperationException>(dx.InnerException);
     }
 
@@ -29,11 +29,11 @@ public class AttributedInterfaceInterceptionFixture
     public void FindsInterceptionAttributeOnExpressionComponent()
     {
         var builder = new ContainerBuilder();
-        builder.Register(c => new C()).As<IHasI>().EnableInterfaceInterceptors();
+        builder.Register(c => new Service()).As<IHasValue>().EnableInterfaceInterceptors();
         builder.RegisterType<AddOneInterceptor>();
-        var cpt = builder.Build().Resolve<IHasI>();
+        var cpt = builder.Build().Resolve<IHasValue>();
 
-        Assert.Equal(11, cpt.GetI()); // proxied
+        Assert.Equal(11, cpt.GetValueByMethod()); // proxied
     }
 
     [Fact]
@@ -41,29 +41,29 @@ public class AttributedInterfaceInterceptionFixture
     {
         var builder = new ContainerBuilder();
 
-        builder.RegisterType<C>().As<IHasI>()
+        builder.RegisterType<Service>().As<IHasValue>()
             .EnableInterfaceInterceptors();
 
         builder.RegisterType<AddOneInterceptor>();
 
         var container = builder.Build();
-        var cpt = container.Resolve<IHasI>();
+        var cpt = container.Resolve<IHasValue>();
 
-        Assert.Equal(11, cpt.GetI()); // proxied
+        Assert.Equal(11, cpt.GetValueByMethod()); // proxied
     }
 
-    public class C : IHasI
+    public class Service : IHasValue
     {
-        public C()
+        public Service()
         {
-            I = 10;
+            Value = 10;
         }
 
-        public int I { get; private set; }
+        public int Value { get; private set; }
 
-        public int GetI()
+        public int GetValueByMethod()
         {
-            return I;
+            return Value;
         }
     }
 
@@ -72,7 +72,7 @@ public class AttributedInterfaceInterceptionFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetI")
+            if (invocation.Method.Name == "GetValueByMethod")
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }

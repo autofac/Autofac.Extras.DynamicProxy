@@ -20,12 +20,12 @@ public class ClassInterceptorsWithOptionsFixture
         options.AddMixinInstance(new LazyLoadMixin());
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().EnableClassInterceptors(options);
+        builder.RegisterType<HasAttributeInterceptors>().EnableClassInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
         int i = 10;
-        var cpt = container.Resolve<C>(TypedParameter.From(i));
+        var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
         var loaded = cpt as ILazyLoadMixin;
         Assert.NotNull(loaded);
@@ -38,15 +38,15 @@ public class ClassInterceptorsWithOptionsFixture
         var options = new ProxyGenerationOptions { Selector = new MyInterceptorSelector() };
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().EnableClassInterceptors(options);
+        builder.RegisterType<HasAttributeInterceptors>().EnableClassInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
         int i = 10;
-        var cpt = container.Resolve<C>(TypedParameter.From(i));
+        var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
-        Assert.Equal(i + 1, cpt.GetI());
-        Assert.Equal(i + 10, cpt.GetJ());
+        Assert.Equal(i + 1, cpt.GetFirstValueByMethod());
+        Assert.Equal(i + 10, cpt.GetSecondValueByMethod());
     }
 
     [Fact]
@@ -55,15 +55,15 @@ public class ClassInterceptorsWithOptionsFixture
         var options = new ProxyGenerationOptions(new InterceptOnlyJ());
 
         var builder = new ContainerBuilder();
-        builder.RegisterType<C>().EnableClassInterceptors(options);
+        builder.RegisterType<HasAttributeInterceptors>().EnableClassInterceptors(options);
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
         int i = 10;
-        var cpt = container.Resolve<C>(TypedParameter.From(i));
+        var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
-        Assert.Equal(i, cpt.GetI());
-        Assert.Equal(i + 11, cpt.GetJ());
+        Assert.Equal(i, cpt.GetFirstValueByMethod());
+        Assert.Equal(i + 11, cpt.GetSecondValueByMethod());
     }
 
     private class AddOneInterceptor : IInterceptor
@@ -71,7 +71,7 @@ public class ClassInterceptorsWithOptionsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetI" || invocation.Method.Name == "GetJ")
+            if (invocation.Method.Name == "GetFirstValueByMethod" || invocation.Method.Name == "GetSecondValueByMethod")
             {
                 invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
             }
@@ -83,7 +83,7 @@ public class ClassInterceptorsWithOptionsFixture
         public void Intercept(IInvocation invocation)
         {
             invocation.Proceed();
-            if (invocation.Method.Name == "GetJ")
+            if (invocation.Method.Name == "GetSecondValueByMethod")
             {
                 invocation.ReturnValue = 10 + (int)invocation.ReturnValue;
             }
@@ -92,47 +92,47 @@ public class ClassInterceptorsWithOptionsFixture
 
     [Intercept(typeof(AddOneInterceptor))]
     [Intercept(typeof(AddTenInterceptor))]
-    public class C
+    public class HasAttributeInterceptors
     {
-        public C(int i)
+        public HasAttributeInterceptors(int i)
         {
-            I = J = i;
+            FirstValue = SecondValue = i;
         }
 
-        public int I { get; set; }
+        public int FirstValue { get; set; }
 
-        public int J { get; set; }
+        public int SecondValue { get; set; }
 
-        public virtual int GetI()
+        public virtual int GetFirstValueByMethod()
         {
-            return I;
+            return FirstValue;
         }
 
-        public virtual int GetJ()
+        public virtual int GetSecondValueByMethod()
         {
-            return J;
+            return SecondValue;
         }
     }
 
-    public class D
+    public class ServiceWithTwoValues
     {
-        public D(int i)
+        public ServiceWithTwoValues(int i)
         {
-            I = J = i;
+            FirstValue = SecondValue = i;
         }
 
-        public int I { get; set; }
+        public int FirstValue { get; set; }
 
-        public int J { get; set; }
+        public int SecondValue { get; set; }
 
-        public virtual int GetI()
+        public virtual int GetFirstValueByMethod()
         {
-            return I;
+            return FirstValue;
         }
 
-        public virtual int GetJ()
+        public virtual int GetSecondValueByMethod()
         {
-            return J;
+            return SecondValue;
         }
     }
 
@@ -148,7 +148,7 @@ public class ClassInterceptorsWithOptionsFixture
 
         public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
         {
-            return methodInfo.Name.Equals("GetJ");
+            return methodInfo.Name.Equals("GetSecondValueByMethod", StringComparison.Ordinal);
         }
     }
 
@@ -167,7 +167,7 @@ public class ClassInterceptorsWithOptionsFixture
     {
         public IInterceptor[] SelectInterceptors(Type type, MethodInfo method, IInterceptor[] interceptors)
         {
-            var result = method.Name == "GetI"
+            var result = method.Name == "GetFirstValueByMethod"
                 ? interceptors.OfType<AddOneInterceptor>().ToArray<IInterceptor>()
                 : interceptors.OfType<AddTenInterceptor>().ToArray<IInterceptor>();
 

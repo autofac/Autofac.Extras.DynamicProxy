@@ -1,7 +1,12 @@
 {
   "cSpell.words": [
     "autofac",
+    "autowired",
     "cref",
+    "interceptable",
+    "proxied",
+    "proxyable",
+    "proxying",
     "xunit"
   ],
   "coverage-gutters.coverageBaseDir": "artifacts/coverage",
@@ -9,6 +14,10 @@
     "coverage.info"
   ],
   "dotnet-test-explorer.testProjectPath": "test/**/*Test.csproj",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.resx": "$(capture).*.resx, $(capture).designer.cs, $(capture).designer.vb"
+  },
   "omnisharp.enableEditorConfigSupport": true,
   "omnisharp.enableRoslynAnalyzers": true
 }

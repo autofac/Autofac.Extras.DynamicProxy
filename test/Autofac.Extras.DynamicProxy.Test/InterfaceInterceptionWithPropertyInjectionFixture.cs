@@ -13,7 +13,7 @@ public class InterfaceInterceptionWithPropertyInjectionFixture
         var builder = new ContainerBuilder();
         builder.RegisterType<StringMethodInterceptor>();
 
-        builder.RegisterType<OtherImpl>().As<IOtherService>();
+        builder.RegisterType<OtherService>();
 
         builder
             .RegisterType<InterceptableWithProperty>()
@@ -34,7 +34,7 @@ public class InterfaceInterceptionWithPropertyInjectionFixture
         var builder = new ContainerBuilder();
         builder.RegisterType<StringMethodInterceptor>();
 
-        builder.RegisterType<OtherImpl>().As<IOtherService>();
+        builder.RegisterType<OtherService>();
 
         builder
             .RegisterType<InterceptableWithProperty>()
@@ -49,11 +49,7 @@ public class InterfaceInterceptionWithPropertyInjectionFixture
         Assert.Equal("intercepted-PublicMethod", obj.PublicMethod());
     }
 
-    public interface IOtherService
-    {
-    }
-
-    public class OtherImpl : IOtherService
+    public class OtherService
     {
     }
 
@@ -61,14 +57,14 @@ public class InterfaceInterceptionWithPropertyInjectionFixture
     {
         string PublicMethod();
 
-        IOtherService GetServiceProperty();
+        OtherService GetServiceProperty();
     }
 
     public class InterceptableWithProperty : IPublicInterface
     {
-        public IOtherService ServiceProperty { get; set; }
+        public OtherService Service { get; set; }
 
-        public IOtherService GetServiceProperty() => ServiceProperty;
+        public OtherService GetServiceProperty() => Service;
 
         public string PublicMethod()
         {

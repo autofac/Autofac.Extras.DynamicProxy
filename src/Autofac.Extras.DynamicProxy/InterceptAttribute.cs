@@ -24,7 +24,7 @@ public class InterceptAttribute : Attribute
     /// Initializes a new instance of the <see cref="InterceptAttribute"/> class.
     /// </summary>
     /// <param name="interceptorService">The interceptor service.</param>
-    /// <exception cref="System.ArgumentNullException">
+    /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="interceptorService" /> is <see langword="null" />.
     /// </exception>
     public InterceptAttribute(Service interceptorService)
