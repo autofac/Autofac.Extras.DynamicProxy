@@ -14,6 +14,7 @@
     "coverage.info"
   ],
   "dotnet-test-explorer.testProjectPath": "test/**/*Test.csproj",
+  "dotnet.defaultSolution": "Autofac.Extras.DynamicProxy.sln",
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "*.resx": "$(capture).*.resx, $(capture).designer.cs, $(capture).designer.vb"
