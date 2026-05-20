@@ -2,7 +2,7 @@
 
 Interceptor and decorator support for [Autofac](https://autofac.org) via Castle DynamicProxy.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/nx0urssttgc840eo?svg=true)](https://ci.appveyor.com/project/Autofac/autofac-extras-dynamicproxy) [![codecov](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy/branch/develop/graph/badge.svg)](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy)
+[![Build status](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy/branch/develop/graph/badge.svg)](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy)
 
 [![Autofac on Stack Overflow](https://img.shields.io/badge/stack%20overflow-autofac-orange.svg)](https://stackoverflow.com/questions/tagged/autofac)
 
