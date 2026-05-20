@@ -1,41 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="All" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="Current">
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-    <PackageVersion Condition="'$(PackageVersion)' == ''">7.1.0</PackageVersion>
-    <Solution>$(MSBuildThisFileDirectory)Autofac.Extras.DynamicProxy.sln</Solution>
-    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
-    <PackagesPath>$(ArtifactsPath)/packages</PackagesPath>
-    <LogsPath>$(ArtifactsPath)/logs</LogsPath>
+    <Version>7.1.0</Version>
+    <SolutionName>Autofac.Extras.DynamicProxy</SolutionName>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+    <ArtifactDirectory>$([System.IO.Path]::Combine($(MSBuildProjectDirectory),"artifacts"))</ArtifactDirectory>
+    <PackageDirectory>$([System.IO.Path]::Combine($(ArtifactDirectory),"packages"))</PackageDirectory>
+    <LogDirectory>$([System.IO.Path]::Combine($(ArtifactDirectory),"logs"))</LogDirectory>
+    <CoverageRunSettings>$([System.IO.Path]::Combine($(MSBuildProjectDirectory),'build/Coverage.runsettings'))</CoverageRunSettings>
+    <BuildDateTime>$([System.DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssZ'))</BuildDateTime>
   </PropertyGroup>
-
-  <!-- Clean -->
+  <Choose>
+    <When Condition="'$(GITHUB_REF_NAME)'==''">
+      <PropertyGroup>
+        <Version>$(Version)-local</Version>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(GITHUB_REF_NAME)'=='master' Or $([System.Text.RegularExpressions.Regex]::IsMatch($(GITHUB_REF_NAME), `^v.+\..+\..+`))">
+      <PropertyGroup>
+        <Version>$(Version)</Version>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(GITHUB_REF_NAME)'=='develop'">
+      <PropertyGroup>
+        <Version>$(Version)-beta$(BuildDateTime)</Version>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <Version>$(Version)-alpha$(BuildDateTime)</Version>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
-    <FilesToDelete Include="$(ArtifactsPath)/**/*.*" />
+    <CleanDirectory Include="$(ArtifactDirectory)" />
+    <SourceProject Include="$(MSBuildProjectDirectory)/src/**/*.csproj" />
+    <TestProject Include="$(MSBuildProjectDirectory)/test/**/*.csproj" />
+    <SolutionFile Include="$(SolutionName).sln" />
   </ItemGroup>
-
+  <Target Name="All">
+    <Message Text="****************************************" Importance="high" />
+    <Message Text="$(SolutionName) v$(Version)" Importance="high" />
+    <Message Text="$(Configuration) Configuration" Importance="high" />
+    <Message Text="$(BuildDateTime)" Importance="high" />
+    <Message Text="****************************************" Importance="high" />
+    <CallTarget Targets="Clean;Compile;Test;Package" />
+  </Target>
   <Target Name="Clean">
-    <Delete Files="@(FilesToDelete)" />
-    <RemoveDir Directories="$(ArtifactsPath)" />
+    <RemoveDir Directories="@(CleanDirectory)" />
+    <RemoveDir Directories="%(SourceProject.RootDir)%(SourceProject.Directory)bin;%(SourceProject.RootDir)%(SourceProject.Directory)obj" />
+    <RemoveDir Directories="%(TestProject.RootDir)%(TestProject.Directory)bin;%(TestProject.RootDir)%(TestProject.Directory)obj" />
   </Target>
-
-  <!-- Build and pack -->
-  <Target Name="BuildPack" DependsOnTargets="Clean">
-    <Exec Command="dotnet build &quot;$(Solution)&quot; -c $(Configuration) -p:Version=$(PackageVersion) -warnaserror" />
-    <Exec Command="dotnet pack &quot;$(Solution)&quot; -c $(Configuration) -p:Version=$(PackageVersion) -o &quot;$(PackagesPath)&quot; --no-build -warnaserror" />
+  <Target Name="Compile">
+    <Exec Command="dotnet --info" />
+    <Exec Command="dotnet build &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) /p:Version=$(Version)" />
   </Target>
-
-  <!-- Test -->
-  <Target Name="Test" DependsOnTargets="BuildPack">
-    <ItemGroup>
-      <TestProjects Include="$(MSBuildThisFileDirectory)test/**/*.Test.csproj" />
-    </ItemGroup>
-    <PropertyGroup>
-      <TestCounter>0</TestCounter>
-    </PropertyGroup>
-    <Exec Command="dotnet test &quot;%(TestProjects.FullPath)&quot; -c $(Configuration) --no-build --collect &quot;XPlat Code Coverage&quot; --settings:&quot;$(MSBuildThisFileDirectory)build/Coverage.runsettings&quot; --results-directory &quot;$(LogsPath)/%(TestProjects.Filename)&quot; -l:trx" />
+  <Target Name="Package">
+    <Exec Command="dotnet pack &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) --output &quot;$(PackageDirectory)&quot; /p:Version=$(Version)" />
   </Target>
-
-  <!-- Main build target -->
-  <Target Name="Build" DependsOnTargets="Test" />
+  <Target Name="Test">
+    <MakeDir Directories="$(LogDirectory)" />
+    <Exec Command="dotnet test &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) --results-directory &quot;$(LogDirectory)&quot; --logger:trx /p:Version=$(Version) --collect:&quot;XPlat Code Coverage&quot; --settings &quot;$(CoverageRunSettings)&quot;" />
+  </Target>
 </Project>
