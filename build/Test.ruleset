@@ -56,6 +56,7 @@
     <Rule Id="SA1618" Action="None" />
     <!-- Don't copy/paste documentation -->
     <Rule Id="SA1625" Action="None" />
+    <Rule Id="SA1633" Action="None" />
     <!-- Exception documentation must not be empty -->
     <Rule Id="SA1627" Action="None" />
     <!-- Enable XML documentation output-->
