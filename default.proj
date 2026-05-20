@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">7.1.0</PackageVersion>
+    <Solution>$(MSBuildThisFileDirectory)Autofac.Extras.DynamicProxy.sln</Solution>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+    <PackagesPath>$(ArtifactsPath)/packages</PackagesPath>
+    <LogsPath>$(ArtifactsPath)/logs</LogsPath>
+  </PropertyGroup>
+
+  <!-- Clean -->
+  <ItemGroup>
+    <FilesToDelete Include="$(ArtifactsPath)/**/*.*" />
+  </ItemGroup>
+
+  <Target Name="Clean">
+    <Delete Files="@(FilesToDelete)" />
+    <RemoveDir Directories="$(ArtifactsPath)" />
+  </Target>
+
+  <!-- Build and pack -->
+  <Target Name="BuildPack" DependsOnTargets="Clean">
+    <Exec Command="dotnet build &quot;$(Solution)&quot; -c $(Configuration) -p:Version=$(PackageVersion) -warnaserror" />
+    <Exec Command="dotnet pack &quot;$(Solution)&quot; -c $(Configuration) -p:Version=$(PackageVersion) -o &quot;$(PackagesPath)&quot; --no-build -warnaserror" />
+  </Target>
+
+  <!-- Test -->
+  <Target Name="Test" DependsOnTargets="BuildPack">
+    <ItemGroup>
+      <TestProjects Include="$(MSBuildThisFileDirectory)test/**/*.Test.csproj" />
+    </ItemGroup>
+    <PropertyGroup>
+      <TestCounter>0</TestCounter>
+    </PropertyGroup>
+    <Exec Command="dotnet test &quot;%(TestProjects.FullPath)&quot; -c $(Configuration) --no-build --collect &quot;XPlat Code Coverage&quot; --settings:&quot;$(MSBuildThisFileDirectory)build/Coverage.runsettings&quot; --results-directory &quot;$(LogsPath)/%(TestProjects.Filename)&quot; -l:trx" />
+  </Target>
+
+  <!-- Main build target -->
+  <Target Name="Build" DependsOnTargets="Test" />
+</Project>

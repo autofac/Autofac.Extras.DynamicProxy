@@ -37,10 +37,10 @@
         "isDefault": true,
         "kind": "test"
       },
+      "label": "test",
       "options": {
         "cwd": "${workspaceFolder}/test/Autofac.Extras.DynamicProxy.Test"
       },
-      "label": "test",
       "problemMatcher": "$msCompile",
       "type": "process"
     }
