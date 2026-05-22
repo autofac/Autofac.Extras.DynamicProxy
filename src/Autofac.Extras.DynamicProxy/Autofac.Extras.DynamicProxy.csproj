@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- VersionPrefix patched by AppVeyor -->
-    <VersionPrefix>0.0.1</VersionPrefix>
     <!-- Assembly metadata -->
     <AssemblyName>Autofac.Extras.DynamicProxy</AssemblyName>
     <AssemblyTitle>Autofac.Extras.DynamicProxy</AssemblyTitle>
