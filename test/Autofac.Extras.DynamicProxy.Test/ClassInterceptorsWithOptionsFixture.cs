@@ -10,7 +10,10 @@ public class ClassInterceptorsWithOptionsFixture
 {
     public interface ILazyLoadMixin
     {
-        bool IsLoaded { get; }
+        bool IsLoaded
+        {
+            get;
+        }
     }
 
     [Fact]
@@ -24,7 +27,7 @@ public class ClassInterceptorsWithOptionsFixture
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
-        int i = 10;
+        var i = 10;
         var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
         var loaded = cpt as ILazyLoadMixin;
@@ -42,7 +45,7 @@ public class ClassInterceptorsWithOptionsFixture
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
-        int i = 10;
+        var i = 10;
         var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
         Assert.Equal(i + 1, cpt.GetFirstValueByMethod());
@@ -59,7 +62,7 @@ public class ClassInterceptorsWithOptionsFixture
         builder.RegisterType<AddOneInterceptor>();
         builder.RegisterType<AddTenInterceptor>();
         var container = builder.Build();
-        int i = 10;
+        var i = 10;
         var cpt = container.Resolve<HasAttributeInterceptors>(TypedParameter.From(i));
 
         Assert.Equal(i, cpt.GetFirstValueByMethod());
@@ -99,9 +102,15 @@ public class ClassInterceptorsWithOptionsFixture
             FirstValue = SecondValue = i;
         }
 
-        public int FirstValue { get; set; }
+        public int FirstValue
+        {
+            get; set;
+        }
 
-        public int SecondValue { get; set; }
+        public int SecondValue
+        {
+            get; set;
+        }
 
         public virtual int GetFirstValueByMethod()
         {
@@ -121,9 +130,15 @@ public class ClassInterceptorsWithOptionsFixture
             FirstValue = SecondValue = i;
         }
 
-        public int FirstValue { get; set; }
+        public int FirstValue
+        {
+            get; set;
+        }
 
-        public int SecondValue { get; set; }
+        public int SecondValue
+        {
+            get; set;
+        }
 
         public virtual int GetFirstValueByMethod()
         {

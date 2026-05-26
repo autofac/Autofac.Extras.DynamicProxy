@@ -79,9 +79,15 @@ public class AttributedInterfaceInterceptionWithOptionsFixture
             FirstValue = SecondValue = 10;
         }
 
-        public int FirstValue { get; private set; }
+        public int FirstValue
+        {
+            get; private set;
+        }
 
-        public int SecondValue { get; private set; }
+        public int SecondValue
+        {
+            get; private set;
+        }
 
         public int GetFirstValueByMethod()
         {

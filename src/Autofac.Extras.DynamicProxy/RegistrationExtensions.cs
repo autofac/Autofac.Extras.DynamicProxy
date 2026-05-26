@@ -20,9 +20,9 @@ public static class RegistrationExtensions
 
     private const string AttributeInterceptorsPropertyName = "Autofac.Extras.DynamicProxy.RegistrationExtensions.AttributeInterceptorsPropertyName";
 
-    private static readonly IEnumerable<Service> EmptyServices = Enumerable.Empty<Service>();
+    private static readonly IEnumerable<Service> _emptyServices = Enumerable.Empty<Service>();
 
-    private static readonly ProxyGenerator ProxyGenerator = new();
+    private static readonly ProxyGenerator _proxyGenerator = new();
 
     /// <summary>
     /// Enable class interception on the target type. Interceptors will be determined
@@ -105,7 +105,7 @@ public static class RegistrationExtensions
         }
 
         registration.ActivatorData.ImplementationType =
-            ProxyGenerator.ProxyBuilder.CreateClassProxyType(
+            _proxyGenerator.ProxyBuilder.CreateClassProxyType(
                 registration.ActivatorData.ImplementationType,
                 additionalInterfaces ?? Type.EmptyTypes,
                 options);
@@ -116,7 +116,7 @@ public static class RegistrationExtensions
         registration.OnPreparing(e =>
         {
             var proxyParameters = new List<Parameter>();
-            int index = 0;
+            var index = 0;
 
             if (options.HasMixins)
             {
@@ -187,8 +187,8 @@ public static class RegistrationExtensions
                 .ToArray();
 
             ctx.Instance = options == null
-                ? ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, interceptors)
-                : ProxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, options, interceptors);
+                ? _proxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, interceptors)
+                : _proxyGenerator.CreateInterfaceProxyWithTarget(theInterface, interfaces, ctx.Instance, options, interceptors);
         }));
 
         return registration;
@@ -287,7 +287,7 @@ public static class RegistrationExtensions
         IEnumerable<Service> interceptorServices,
         string metadataKey)
     {
-        if (builder.RegistrationData.Metadata.TryGetValue(metadataKey, out object? existing) && existing is IEnumerable<Service> existingServices)
+        if (builder.RegistrationData.Metadata.TryGetValue(metadataKey, out var existing) && existing is IEnumerable<Service> existingServices)
         {
             builder.RegistrationData.Metadata[metadataKey] =
                 existingServices.Concat(interceptorServices).Distinct();
@@ -300,9 +300,9 @@ public static class RegistrationExtensions
 
     private static IEnumerable<Service> GetInterceptorServices(IComponentRegistration registration, Type implType)
     {
-        var result = EmptyServices;
+        var result = _emptyServices;
 
-        if (registration.Metadata.TryGetValue(InterceptorsPropertyName, out object? services) && services is IEnumerable<Service> existingPropertyServices)
+        if (registration.Metadata.TryGetValue(InterceptorsPropertyName, out var services) && services is IEnumerable<Service> existingPropertyServices)
         {
             result = result.Concat(existingPropertyServices);
         }

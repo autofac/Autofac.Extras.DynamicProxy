@@ -85,9 +85,15 @@ public class InterceptorsChosenByMetadataWithOptionsFixture
             UniqueVisitorCount = 6;
         }
 
-        private int UniqueVisitorCount { get; set; }
+        private int UniqueVisitorCount
+        {
+            get; set;
+        }
 
-        private int VisitCount { get; set; }
+        private int VisitCount
+        {
+            get; set;
+        }
 
         public int GetUniqueVisitorCount()
         {
