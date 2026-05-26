@@ -83,13 +83,13 @@ public class ClassInterceptorsFixture
 
         var container = builder.Build();
 
-        const int i = 123;
+        const int I = 123;
 
         using (var scope = container.BeginLifetimeScope())
         {
             var mgr = scope.Resolve<ClassWithDelegateFactory>();
-            var byFunc = mgr.CreateByFunc(i);
-            var byDelegate = mgr.CreateByDelegate(i);
+            var byFunc = mgr.CreateByFunc(I);
+            var byDelegate = mgr.CreateByDelegate(I);
 
             Assert.Equal(byFunc.I, byDelegate.I);
         }
@@ -129,7 +129,10 @@ public class ClassInterceptorsFixture
             Value = i;
         }
 
-        public int Value { get; set; }
+        public int Value
+        {
+            get; set;
+        }
 
         public virtual int GetValueByMethod()
         {
@@ -144,7 +147,10 @@ public class ClassInterceptorsFixture
             Value = i;
         }
 
-        public int Value { get; set; }
+        public int Value
+        {
+            get; set;
+        }
 
         public virtual int GetValueByMethod()
         {
@@ -157,7 +163,10 @@ public class ClassInterceptorsFixture
     {
         public delegate ClassWithDelegate Factory(int i);
 
-        public int I { get; set; }
+        public int I
+        {
+            get; set;
+        }
 
         public ClassWithDelegate(int i)
         {
@@ -167,9 +176,15 @@ public class ClassInterceptorsFixture
 
     public class ClassWithDelegateFactory
     {
-        public Func<int, ClassWithDelegate> ObjectFuncFactory { get; set; }
+        public Func<int, ClassWithDelegate> ObjectFuncFactory
+        {
+            get; set;
+        }
 
-        public ClassWithDelegate.Factory ObjectDelegateFactory { get; set; }
+        public ClassWithDelegate.Factory ObjectDelegateFactory
+        {
+            get; set;
+        }
 
         public virtual ClassWithDelegate CreateByFunc(int i)
         {

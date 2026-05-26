@@ -10,16 +10,11 @@ namespace Autofac.Extras.DynamicProxy;
 /// Indicates that a type should be intercepted.
 /// </summary>
 [ExcludeFromCodeCoverage]
-[SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
-[SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")]
+[SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "Attribute is unsealed to allow derived types to provide additional interception metadata.")]
+[SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Constructor arguments are transformed into Service instances and exposed through InterceptorService property.")]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
 public class InterceptAttribute : Attribute
 {
-    /// <summary>
-    /// Gets the interceptor service.
-    /// </summary>
-    public Service InterceptorService { get; private set; }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="InterceptAttribute"/> class.
     /// </summary>
@@ -48,5 +43,13 @@ public class InterceptAttribute : Attribute
     public InterceptAttribute(Type interceptorServiceType)
         : this(new TypedService(interceptorServiceType))
     {
+    }
+
+    /// <summary>
+    /// Gets the interceptor service.
+    /// </summary>
+    public Service InterceptorService
+    {
+        get; private set;
     }
 }

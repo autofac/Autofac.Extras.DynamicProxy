@@ -33,7 +33,10 @@ public class InterceptorsChosenByMetadataFixture
             VisitCount = 10;
         }
 
-        private int VisitCount { get; set; }
+        private int VisitCount
+        {
+            get; set;
+        }
 
         public int GetVisitCount()
         {

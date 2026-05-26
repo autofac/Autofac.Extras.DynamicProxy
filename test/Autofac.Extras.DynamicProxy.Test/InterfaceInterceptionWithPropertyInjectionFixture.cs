@@ -62,7 +62,10 @@ public class InterfaceInterceptionWithPropertyInjectionFixture
 
     public class InterceptableWithProperty : IPublicInterface
     {
-        public OtherService Service { get; set; }
+        public OtherService Service
+        {
+            get; set;
+        }
 
         public OtherService GetServiceProperty() => Service;
 

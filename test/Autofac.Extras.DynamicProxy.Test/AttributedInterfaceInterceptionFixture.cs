@@ -59,7 +59,10 @@ public class AttributedInterfaceInterceptionFixture
             Value = 10;
         }
 
-        public int Value { get; private set; }
+        public int Value
+        {
+            get; private set;
+        }
 
         public int GetValueByMethod()
         {
