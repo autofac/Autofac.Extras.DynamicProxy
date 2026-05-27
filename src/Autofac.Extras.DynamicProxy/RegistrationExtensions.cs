@@ -173,7 +173,7 @@ public static class RegistrationExtensions
                 .Where(ProxyUtil.IsAccessible)
                 .ToArray();
 
-            if (!proxiedInterfaces.Any())
+            if (proxiedInterfaces.Length == 0)
             {
                 return;
             }
