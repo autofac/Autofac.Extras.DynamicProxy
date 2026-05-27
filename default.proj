@@ -54,7 +54,7 @@
   </Target>
   <Target Name="Compile">
     <Exec Command="dotnet --info" />
-    <Exec Command="dotnet build &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) /p:Version=$(Version) /p:NuGetAudit=false" />
+    <Exec Command="dotnet build &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) /p:Version=$(Version)" />
   </Target>
   <Target Name="Package">
     <MakeDir Directories="$(PackageDirectory)" />
@@ -62,6 +62,6 @@
   </Target>
   <Target Name="Test">
     <MakeDir Directories="$(LogDirectory)" />
-    <Exec Command="dotnet test &quot;%(TestProject.Identity)&quot; -c $(Configuration) --results-directory &quot;$(LogDirectory)&quot; --logger:trx /p:Version=$(Version) /p:NuGetAudit=false --collect:&quot;XPlat Code Coverage&quot; --settings &quot;$(CoverageRunSettings)&quot;" />
+    <Exec Command="dotnet test &quot;%(TestProject.Identity)&quot; -c $(Configuration) --results-directory &quot;$(LogDirectory)&quot; --logger:trx /p:Version=$(Version) --collect:&quot;XPlat Code Coverage&quot; --settings &quot;$(CoverageRunSettings)&quot;" />
   </Target>
 </Project>
