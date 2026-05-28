@@ -178,7 +178,7 @@ public static class RegistrationExtensions
                 return;
             }
 
-            var theInterface = proxiedInterfaces.First();
+            var theInterface = proxiedInterfaces[0];
             var interfaces = proxiedInterfaces.Skip(1).ToArray();
 
             var interceptors = GetInterceptorServices(ctx.Registration, ctx.Instance.GetType())
