@@ -33,13 +33,15 @@ namespace Autofac.Extras.DynamicProxy.Benchmarks
         [Fact]
         public void ClassInterception()
         {
-            BenchmarkRunner.Run<ClassInterceptionBenchmark>();
+            var exception = Record.Exception(() => BenchmarkRunner.Run<ClassInterceptionBenchmark>());
+            Assert.Null(exception);
         }
 
         [Fact]
         public void InterfaceInterception()
         {
-            BenchmarkRunner.Run<InterfaceInterceptionBenchmark>();
+            var exception = Record.Exception(() => BenchmarkRunner.Run<InterfaceInterceptionBenchmark>());
+            Assert.Null(exception);
         }
     }
 }
