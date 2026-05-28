@@ -11,6 +11,8 @@
     <PackageId>Autofac.Extras.DynamicProxy.Benchmarks</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <CodeAnalysisRuleSet>../../build/Test.ruleset</CodeAnalysisRuleSet>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +29,10 @@
     </PackageReference>
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.27.0.140913">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
