@@ -1,0 +1,24 @@
+﻿// Copyright (c) Autofac Project. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Globalization;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+
+namespace Autofac.Extras.DynamicProxy.Benchmarks;
+
+internal sealed class BenchmarkConfig : ManualConfig
+{
+    private const string BenchmarkArtifactsFolder = "BenchmarkDotNet.Artifacts";
+
+    internal BenchmarkConfig()
+    {
+        Add(DefaultConfig.Instance);
+
+        var rootFolder = AppContext.BaseDirectory;
+        var runFolder = DateTime.UtcNow.ToString("dd-MM-yyyy_hh-MM-ss", CultureInfo.InvariantCulture);
+        ArtifactsPath = Path.Combine(rootFolder, BenchmarkArtifactsFolder, runFolder);
+
+        AddDiagnoser(MemoryDiagnoser.Default);
+    }
+}

@@ -1,42 +1,43 @@
-﻿using Autofac.Extras.DynamicProxy.Benchmarks.Scenario;
-using BenchmarkDotNet.Attributes;
+﻿// Copyright (c) Autofac Project. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 
-namespace Autofac.Extras.DynamicProxy.Benchmarks
+using Autofac.Extras.DynamicProxy.Benchmarks.Scenario;
+
+namespace Autofac.Extras.DynamicProxy.Benchmarks;
+
+/// <summary>
+/// Tests the performance of retrieving a (reasonably) deeply-nested object graph.
+/// </summary>
+public class InterfaceInterceptionBenchmark
 {
-    /// <summary>
-    /// Tests the performance of retrieving a (reasonably) deeply-nested object graph.
-    /// </summary>
-    public class InterfaceInterceptionBenchmark
+    private IContainer _container = null!;
+
+    [GlobalSetup]
+    public void Setup()
     {
-        private IContainer _container;
+        var builder = new ContainerBuilder();
+        builder.RegisterType<StringMethodInterceptor>();
+        builder.RegisterType<ClassWithInterceptAttribute>()
+            .EnableInterfaceInterceptors()
+            .As<ITest>();
+        builder.RegisterType<ClassWithoutInterceptAttribute>()
+            .EnableInterfaceInterceptors()
+            .InterceptedBy(typeof(StringMethodInterceptor))
+            .As<ITest>();
+        _container = builder.Build();
+    }
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<StringMethodInterceptor>();
-            builder.RegisterType<ClassWithInterceptAttribute>()
-                .EnableInterfaceInterceptors()
-                .As<ITest>();
-            builder.RegisterType<ClassWithoutInterceptAttribute>()
-                .EnableInterfaceInterceptors()
-                .InterceptedBy(typeof(StringMethodInterceptor))
-                .As<ITest>();
-            _container = builder.Build();
-        }
+    [Benchmark]
+    public string WiredUsingInterceptAttribute()
+    {
+        var instance = _container.Resolve<ITest>();
+        return instance.Test();
+    }
 
-        [Benchmark]
-        public string WiredUsingInterceptAttribute()
-        {
-            var instance = _container.Resolve<ITest>();
-            return instance.Test();
-        }
-
-        [Benchmark]
-        public string WiredUsingInterceptedBy()
-        {
-            var d = _container.Resolve<ITest>();
-            return d.Test();
-        }
+    [Benchmark]
+    public string WiredUsingInterceptedBy()
+    {
+        var d = _container.Resolve<ITest>();
+        return d.Test();
     }
 }
