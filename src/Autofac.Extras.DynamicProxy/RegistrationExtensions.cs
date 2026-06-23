@@ -164,7 +164,7 @@ public static class RegistrationExtensions
         {
             next(ctx);
 
-            EnsureInterfaceInterceptionApplies(ctx.Registration);
+            EnsureInterfaceInterceptionApplies(ctx.Service, ctx.Registration);
 
             // The instance won't ever _practically_ be null by the time it gets here.
             var proxiedInterfaces = ctx.Instance!
@@ -267,12 +267,15 @@ public static class RegistrationExtensions
         return InterceptedBy(builder, interceptorServiceTypes.Select(t => new TypedService(t)).ToArray());
     }
 
-    private static void EnsureInterfaceInterceptionApplies(IComponentRegistration componentRegistration)
+    private static void EnsureInterfaceInterceptionApplies(Service service, IComponentRegistration componentRegistration)
     {
-        if (componentRegistration.Services
-            .OfType<IServiceWithType>()
-            .Select(s => new Tuple<Type, TypeInfo>(s.ServiceType, s.ServiceType.GetTypeInfo()))
-            .Any(s => !s.Item2.IsInterface || !ProxyUtil.IsAccessible(s.Item1)))
+        // Only the service actually being resolved needs to be a public interface.
+        // A registration may expose additional services (for example, the concrete
+        // type alongside an interface when scanning with AsClosedTypesOf) that are
+        // not interfaces; those are irrelevant when interception is applied to an
+        // interface service. See issue #27.
+        if (service is IServiceWithType serviceWithType &&
+            (!serviceWithType.ServiceType.GetTypeInfo().IsInterface || !ProxyUtil.IsAccessible(serviceWithType.ServiceType)))
         {
             throw new InvalidOperationException(
                 string.Format(
