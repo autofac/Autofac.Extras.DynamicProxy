@@ -13,8 +13,8 @@ public class ClassInterceptorsFixture
     [Fact]
     public void EnableClassInterceptors_NullRegistration()
     {
-        IRegistrationBuilder<D, ConcreteReflectionActivatorData, SingleRegistrationStyle>? concrete = null;
-        IRegistrationBuilder<D, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle>? scanning = null;
+        IRegistrationBuilder<D, ConcreteReflectionActivatorData, SingleRegistrationStyle> concrete = null!;
+        IRegistrationBuilder<D, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle> scanning = null!;
         var options = new ProxyGenerationOptions();
         Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors());
         Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors(options));
@@ -115,7 +115,8 @@ public class ClassInterceptorsFixture
             invocation.Proceed();
             if (invocation.Method.Name == "GetValueByMethod")
             {
-                invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
+                var returnValue = (int)(invocation.ReturnValue ?? throw new InvalidOperationException());
+                invocation.ReturnValue = 1 + returnValue;
             }
         }
     }

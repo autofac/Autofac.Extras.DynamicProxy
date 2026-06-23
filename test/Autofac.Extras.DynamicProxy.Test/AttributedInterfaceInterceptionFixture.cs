@@ -77,7 +77,8 @@ public class AttributedInterfaceInterceptionFixture
             invocation.Proceed();
             if (invocation.Method.Name == "GetValueByMethod")
             {
-                invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
+                var returnValue = (int)(invocation.ReturnValue ?? throw new InvalidOperationException());
+                invocation.ReturnValue = 1 + returnValue;
             }
         }
     }

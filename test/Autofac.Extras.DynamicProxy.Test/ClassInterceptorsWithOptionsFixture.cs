@@ -76,7 +76,8 @@ public class ClassInterceptorsWithOptionsFixture
             invocation.Proceed();
             if (invocation.Method.Name == "GetFirstValueByMethod" || invocation.Method.Name == "GetSecondValueByMethod")
             {
-                invocation.ReturnValue = 1 + (int)invocation.ReturnValue;
+                var returnValue = (int)(invocation.ReturnValue ?? throw new InvalidOperationException());
+                invocation.ReturnValue = 1 + returnValue;
             }
         }
     }
@@ -88,7 +89,8 @@ public class ClassInterceptorsWithOptionsFixture
             invocation.Proceed();
             if (invocation.Method.Name == "GetSecondValueByMethod")
             {
-                invocation.ReturnValue = 10 + (int)invocation.ReturnValue;
+                var returnValue = (int)(invocation.ReturnValue ?? throw new InvalidOperationException());
+                invocation.ReturnValue = 10 + returnValue;
             }
         }
     }
