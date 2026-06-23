@@ -1,8 +1,37 @@
 {
+  "linux": {
+    "options": {
+      "shell": {
+        "args": [
+          "-NoProfile",
+          "-Command"
+        ],
+        "executable": "pwsh"
+      }
+    }
+  },
+  "osx": {
+    "options": {
+      "shell": {
+        "args": [
+          "-NoProfile",
+          "-Command"
+        ],
+        "executable": "/usr/local/bin/pwsh"
+      }
+    }
+  },
   "tasks": [
+    {
+      "command": "If (Test-Path ${workspaceFolder}/artifacts/logs) { Remove-Item ${workspaceFolder}/artifacts/logs -Recurse -Force }; New-Item -Path ${workspaceFolder}/artifacts/logs -ItemType Directory -Force | Out-Null",
+      "label": "create log directory",
+      "type": "shell"
+    },
     {
       "args": [
         "build",
+        "${workspaceFolder}/Autofac.Extras.DynamicProxy.sln",
+        "--tl:off",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -12,38 +41,46 @@
         "kind": "build"
       },
       "label": "build",
-      "presentation": {
-        "reveal": "silent"
-      },
       "problemMatcher": "$msCompile",
       "type": "shell"
     },
     {
       "args": [
         "test",
+        "${workspaceFolder}/Autofac.Extras.DynamicProxy.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary",
         "--results-directory",
-        "\"../../../../artifacts/log\"",
+        "artifacts/logs",
         "--logger:trx",
-        "/p:CoverletOutput=\"${workspaceFolder}/artifacts/coverage/\"",
-        "/p:CollectCoverage=true",
-        "/p:CoverletOutputFormat=lcov",
-        "/p:Exclude=\"[Autofac.Extras.DynamicProxy.Test.SatelliteAssembly]*\"",
-        "-m:1"
+        "--collect:XPlat Code Coverage",
+        "--settings:build/Coverage.runsettings"
       ],
       "command": "dotnet",
+      "dependsOn": [
+        "create log directory"
+      ],
       "group": {
         "isDefault": true,
         "kind": "test"
       },
       "label": "test",
-      "options": {
-        "cwd": "${workspaceFolder}/test/Autofac.Extras.DynamicProxy.Test"
-      },
       "problemMatcher": "$msCompile",
       "type": "process"
     }
   ],
-  "version": "2.0.0"
+  "version": "2.0.0",
+  "windows": {
+    "options": {
+      "shell": {
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-Command"
+        ],
+        "executable": "pwsh.exe"
+      }
+    }
+  }
 }

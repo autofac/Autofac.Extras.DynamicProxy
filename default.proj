@@ -47,6 +47,12 @@
     <Message Text="****************************************" Importance="high" />
     <CallTarget Targets="Clean;Compile;Test;Package" />
   </Target>
+  <Target Name="Benchmarks" DependsOnTargets="Compile">
+    <Message Text="****************************************" Importance="high" />
+    <Message Text="Running Benchmarks" Importance="high" />
+    <Message Text="****************************************" Importance="high" />
+    <Exec Command="dotnet run --project &quot;$([System.IO.Path]::Combine($(MSBuildProjectDirectory),'bench/Autofac.Extras.DynamicProxy.Benchmarks'))&quot; -c $(Configuration) --no-launch-profile --no-restore --no-build -- --filter Autofac.Benchmarks.*" />
+  </Target>
   <Target Name="Clean">
     <RemoveDir Directories="@(CleanDirectory)" />
     <RemoveDir Directories="%(SourceProject.RootDir)%(SourceProject.Directory)bin;%(SourceProject.RootDir)%(SourceProject.Directory)obj" />
@@ -62,6 +68,6 @@
   </Target>
   <Target Name="Test">
     <MakeDir Directories="$(LogDirectory)" />
-    <Exec Command="dotnet test &quot;%(TestProject.Identity)&quot; -c $(Configuration) --results-directory &quot;$(LogDirectory)&quot; --logger:trx /p:Version=$(Version) --collect:&quot;XPlat Code Coverage&quot; --settings &quot;$(CoverageRunSettings)&quot;" />
+    <Exec Command="dotnet test &quot;%(SolutionFile.FullPath)&quot; -c $(Configuration) --results-directory &quot;$(LogDirectory)&quot; --logger:trx /p:Version=$(Version) --collect:&quot;XPlat Code Coverage&quot; --settings &quot;$(CoverageRunSettings)&quot;" />
   </Target>
 </Project>

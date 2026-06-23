@@ -2,23 +2,16 @@
 
 Interceptor and decorator support for [Autofac](https://autofac.org) via Castle DynamicProxy.
 
-[![Build status](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy/branch/develop/graph/badge.svg)](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy)
+[![Build status](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/main.yml/badge.svg)](https://github.com/autofac/Autofac.Extras.DynamicProxy/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy/branch/develop/graph/badge.svg)](https://codecov.io/gh/Autofac/Autofac.Extras.DynamicProxy) [![NuGet](https://img.shields.io/nuget/v/Autofac.Extras.DynamicProxy.svg)](https://nuget.org/packages/Autofac.Extras.DynamicProxy)
 
-[![Autofac on Stack Overflow](https://img.shields.io/badge/stack%20overflow-autofac-orange.svg)](https://stackoverflow.com/questions/tagged/autofac)
+Please file issues and pull requests for this package in this repository rather than in the Autofac core repo.
 
-## Get Packages
+- [Documentation](https://autofac.readthedocs.io/en/latest/advanced/interceptors.html)
+- [NuGet](https://www.nuget.org/packages/Autofac.Extras.DynamicProxy/)
+- [Contributing](https://autofac.readthedocs.io/en/latest/contributors.html)
+- [Open in Visual Studio Code](https://open.vscode.dev/autofac/Autofac.Extras.DynamicProxy)
 
-You can get Autofac.Extras.DynamicProxy by [grabbing the latest NuGet packages](https://www.nuget.org/packages/Autofac.Extras.DynamicProxy/). If you're feeling adventurous, [continuous integration builds are on MyGet](https://www.myget.org/gallery/autofac).
-
-[Release notes are available on GitHub](https://github.com/autofac/Autofac.Extras.DynamicProxy/releases).
-
-## Get Help
-
-**Need help with Autofac?** We have [a documentation site](https://autofac.readthedocs.io/) as well as [API documentation](https://autofac.org/apidoc/). We're ready to answer your questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/autofac) or check out the [discussion forum](https://groups.google.com/forum/#forum/autofac).
-
-**If you find a bug with Autofac.Extras.DynamicProxy** please [file it in that repo](https://github.com/autofac/Autofac.Extras.DynamicProxy/issues).
-
-## Get Started
+## Quick Start
 
 First, create your interceptor:
 
@@ -55,9 +48,6 @@ var willBeIntercepted = container.Resolve<ISomeInterface>();
 
 [You can read more details in the documentation.](https://autofac.readthedocs.io/en/latest/advanced/interceptors.html)
 
-## Contributing / Pull Requests
+## Get Help
 
-Refer to the [Contributor Guide](https://github.com/autofac/.github/blob/master/CONTRIBUTING.md)
-for setting up and building Autofac source.
-
-You can also open this repository right now [in VS Code](https://open.vscode.dev/autofac/Autofac.Extras.DynamicProxy).
+**Need help with Autofac?** We have [a documentation site](https://autofac.readthedocs.io/) as well as [API documentation](https://autofac.org/apidoc/). We're ready to answer your questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/autofac) or check out the [discussion forum](https://groups.google.com/forum/#forum/autofac).
