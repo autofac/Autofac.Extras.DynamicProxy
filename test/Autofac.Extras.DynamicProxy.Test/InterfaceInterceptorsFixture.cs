@@ -30,8 +30,8 @@ public class InterfaceInterceptorsFixture
     [Fact]
     public void EnableInterfaceInterceptors_NullRegistration()
     {
-        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle> concrete = null;
-        IRegistrationBuilder<Interceptable, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle> scanning = null;
+        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle>? concrete = null;
+        IRegistrationBuilder<Interceptable, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle>? scanning = null;
         var options = new ProxyGenerationOptions();
         Assert.Throws<ArgumentNullException>(() => concrete.EnableInterfaceInterceptors());
         Assert.Throws<ArgumentNullException>(() => concrete.EnableInterfaceInterceptors(options));
@@ -136,7 +136,7 @@ public class InterfaceInterceptorsFixture
     [Fact]
     public void InterceptedBy_NullRegistration()
     {
-        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle> registration = null;
+        IRegistrationBuilder<Interceptable, ConcreteReflectionActivatorData, SingleRegistrationStyle>? registration = null;
         Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy(new KeyedService("name", typeof(IInterceptor))));
         Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy("name"));
         Assert.Throws<ArgumentNullException>(() => registration.InterceptedBy(typeof(StringMethodInterceptor)));

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Autofac Project. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Diagnostics.CodeAnalysis;
 using Autofac.Builder;
 using Autofac.Core;
 using Autofac.Extras.DynamicProxy.Test.SatelliteAssembly;
@@ -14,8 +13,8 @@ public class ClassInterceptorsFixture
     [Fact]
     public void EnableClassInterceptors_NullRegistration()
     {
-        IRegistrationBuilder<D, ConcreteReflectionActivatorData, SingleRegistrationStyle> concrete = null;
-        IRegistrationBuilder<D, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle> scanning = null;
+        IRegistrationBuilder<D, ConcreteReflectionActivatorData, SingleRegistrationStyle>? concrete = null;
+        IRegistrationBuilder<D, Features.Scanning.ScanningActivatorData, SingleRegistrationStyle>? scanning = null;
         var options = new ProxyGenerationOptions();
         Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors());
         Assert.Throws<ArgumentNullException>(() => concrete.EnableClassInterceptors(options));
@@ -176,12 +175,12 @@ public class ClassInterceptorsFixture
 
     public class ClassWithDelegateFactory
     {
-        public Func<int, ClassWithDelegate> ObjectFuncFactory
+        public required Func<int, ClassWithDelegate> ObjectFuncFactory
         {
             get; set;
         }
 
-        public ClassWithDelegate.Factory ObjectDelegateFactory
+        public required ClassWithDelegate.Factory ObjectDelegateFactory
         {
             get; set;
         }
