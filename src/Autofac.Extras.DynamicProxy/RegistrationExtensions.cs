@@ -40,6 +40,28 @@ public static class RegistrationExtensions
     }
 
     /// <summary>
+    /// Enable class interception on the target type, conditionally based on the
+    /// implementation type. Interceptors will be determined via Intercept attributes
+    /// on the class or added with InterceptedBy(). Only virtual methods can be
+    /// intercepted this way.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="shouldIntercept">
+    /// A predicate, evaluated against each candidate implementation type, that
+    /// determines whether interception is applied. Types for which the predicate
+    /// returns <see langword="false" /> are registered without interception.
+    /// </param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, ScanningActivatorData, TRegistrationStyle> EnableClassInterceptors<TLimit, TRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, ScanningActivatorData, TRegistrationStyle> registration,
+        Func<Type, bool> shouldIntercept)
+    {
+        return EnableClassInterceptors(registration, ProxyGenerationOptions.Default, shouldIntercept);
+    }
+
+    /// <summary>
     /// Enable class interception on the target type. Interceptors will be determined
     /// via Intercept attributes on the class or added with InterceptedBy().
     /// Only virtual methods can be intercepted this way.
@@ -54,6 +76,30 @@ public static class RegistrationExtensions
         where TConcreteReflectionActivatorData : ConcreteReflectionActivatorData
     {
         return EnableClassInterceptors(registration, ProxyGenerationOptions.Default);
+    }
+
+    /// <summary>
+    /// Enable class interception on the target type, conditionally based on the
+    /// implementation type. Interceptors will be determined via Intercept attributes
+    /// on the class or added with InterceptedBy(). Only virtual methods can be
+    /// intercepted this way.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TConcreteReflectionActivatorData">Activator data type.</typeparam>
+    /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="shouldIntercept">
+    /// A predicate, evaluated against the implementation type, that determines
+    /// whether interception is applied. When the predicate returns
+    /// <see langword="false" /> the type is registered without interception.
+    /// </param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle> EnableClassInterceptors<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle> registration,
+        Func<Type, bool> shouldIntercept)
+        where TConcreteReflectionActivatorData : ConcreteReflectionActivatorData
+    {
+        return EnableClassInterceptors(registration, ProxyGenerationOptions.Default, shouldIntercept);
     }
 
     /// <summary>
@@ -72,12 +118,38 @@ public static class RegistrationExtensions
         ProxyGenerationOptions options,
         params Type[] additionalInterfaces)
     {
+        return EnableClassInterceptors(registration, options, null, additionalInterfaces);
+    }
+
+    /// <summary>
+    /// Enable class interception on the target type. Interceptors will be determined
+    /// via Intercept attributes on the class or added with InterceptedBy().
+    /// Only virtual methods can be intercepted this way.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="options">Proxy generation options to apply.</param>
+    /// <param name="shouldIntercept">
+    /// An optional predicate, evaluated against each candidate implementation type,
+    /// that determines whether interception is applied. Types for which the predicate
+    /// returns <see langword="false" /> are registered without interception. When
+    /// <see langword="null" /> all types are intercepted.
+    /// </param>
+    /// <param name="additionalInterfaces">Additional interface types. Calls to their members will be proxied as well.</param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, ScanningActivatorData, TRegistrationStyle> EnableClassInterceptors<TLimit, TRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, ScanningActivatorData, TRegistrationStyle> registration,
+        ProxyGenerationOptions options,
+        Func<Type, bool>? shouldIntercept,
+        params Type[] additionalInterfaces)
+    {
         if (registration == null)
         {
             throw new ArgumentNullException(nameof(registration));
         }
 
-        registration.ActivatorData.ConfigurationActions.Add((t, rb) => rb.EnableClassInterceptors(options, additionalInterfaces));
+        registration.ActivatorData.ConfigurationActions.Add((t, rb) => rb.EnableClassInterceptors(options, shouldIntercept, additionalInterfaces));
         return registration;
     }
 
@@ -99,9 +171,45 @@ public static class RegistrationExtensions
         params Type[] additionalInterfaces)
         where TConcreteReflectionActivatorData : ConcreteReflectionActivatorData
     {
+        return EnableClassInterceptors(registration, options, null, additionalInterfaces);
+    }
+
+    /// <summary>
+    /// Enable class interception on the target type. Interceptors will be determined
+    /// via Intercept attributes on the class or added with InterceptedBy().
+    /// Only virtual methods can be intercepted this way.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TConcreteReflectionActivatorData">Activator data type.</typeparam>
+    /// <typeparam name="TRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="options">Proxy generation options to apply.</param>
+    /// <param name="shouldIntercept">
+    /// An optional predicate, evaluated against the implementation type, that
+    /// determines whether interception is applied. When the predicate returns
+    /// <see langword="false" /> the type is registered without interception. When
+    /// <see langword="null" /> the type is intercepted.
+    /// </param>
+    /// <param name="additionalInterfaces">Additional interface types. Calls to their members will be proxied as well.</param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle> EnableClassInterceptors<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, TConcreteReflectionActivatorData, TRegistrationStyle> registration,
+        ProxyGenerationOptions options,
+        Func<Type, bool>? shouldIntercept,
+        params Type[] additionalInterfaces)
+        where TConcreteReflectionActivatorData : ConcreteReflectionActivatorData
+    {
         if (registration == null)
         {
             throw new ArgumentNullException(nameof(registration));
+        }
+
+        // Class interception rewrites the implementation type to a proxy subclass
+        // at registration time, so the decision to intercept is made here, per type.
+        // When the predicate rejects the type the registration is left untouched.
+        if (shouldIntercept != null && !shouldIntercept(registration.ActivatorData.ImplementationType))
+        {
+            return registration;
         }
 
         registration.ActivatorData.ImplementationType =
@@ -155,6 +263,52 @@ public static class RegistrationExtensions
     public static IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> EnableInterfaceInterceptors<TLimit, TActivatorData, TSingleRegistrationStyle>(
         this IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> registration, ProxyGenerationOptions? options = null)
     {
+        return EnableInterfaceInterceptors(registration, options, null);
+    }
+
+    /// <summary>
+    /// Enable interface interception on the target type, conditionally based on the
+    /// resolved implementation type. Interceptors will be determined via Intercept
+    /// attributes on the class or interface, or added with InterceptedBy() calls.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TActivatorData">Activator data type.</typeparam>
+    /// <typeparam name="TSingleRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="shouldIntercept">
+    /// A predicate, evaluated against the resolved implementation type, that
+    /// determines whether interception is applied. When the predicate returns
+    /// <see langword="false" /> the resolved instance is returned without a proxy.
+    /// </param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> EnableInterfaceInterceptors<TLimit, TActivatorData, TSingleRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> registration,
+        Func<Type, bool> shouldIntercept)
+    {
+        return EnableInterfaceInterceptors(registration, null, shouldIntercept);
+    }
+
+    /// <summary>
+    /// Enable interface interception on the target type, conditionally based on the
+    /// resolved implementation type. Interceptors will be determined via Intercept
+    /// attributes on the class or interface, or added with InterceptedBy() calls.
+    /// </summary>
+    /// <typeparam name="TLimit">Registration limit type.</typeparam>
+    /// <typeparam name="TActivatorData">Activator data type.</typeparam>
+    /// <typeparam name="TSingleRegistrationStyle">Registration style.</typeparam>
+    /// <param name="registration">Registration to apply interception to.</param>
+    /// <param name="options">Proxy generation options to apply.</param>
+    /// <param name="shouldIntercept">
+    /// A predicate, evaluated against the resolved implementation type, that
+    /// determines whether interception is applied. When the predicate returns
+    /// <see langword="false" /> the resolved instance is returned without a proxy.
+    /// </param>
+    /// <returns>Registration builder allowing the registration to be configured.</returns>
+    public static IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> EnableInterfaceInterceptors<TLimit, TActivatorData, TSingleRegistrationStyle>(
+        this IRegistrationBuilder<TLimit, TActivatorData, TSingleRegistrationStyle> registration,
+        ProxyGenerationOptions? options,
+        Func<Type, bool>? shouldIntercept)
+    {
         if (registration == null)
         {
             throw new ArgumentNullException(nameof(registration));
@@ -164,11 +318,21 @@ public static class RegistrationExtensions
         {
             next(ctx);
 
+            // The instance won't ever _practically_ be null by the time it gets here.
+            var implementationType = ctx.Instance!.GetType();
+
+            // Interface interception happens at resolve time, so the predicate is
+            // evaluated against the actual implementation type being returned. When
+            // it rejects the type the instance is returned unproxied; the
+            // interface-only guard is also skipped because no proxy is created.
+            if (shouldIntercept != null && !shouldIntercept(implementationType))
+            {
+                return;
+            }
+
             EnsureInterfaceInterceptionApplies(ctx.Service, ctx.Registration);
 
-            // The instance won't ever _practically_ be null by the time it gets here.
-            var proxiedInterfaces = ctx.Instance!
-                .GetType()
+            var proxiedInterfaces = implementationType
                 .GetInterfaces()
                 .Where(ProxyUtil.IsAccessible)
                 .ToArray();
@@ -181,7 +345,7 @@ public static class RegistrationExtensions
             var theInterface = proxiedInterfaces[0];
             var interfaces = proxiedInterfaces.Skip(1).ToArray();
 
-            var interceptors = GetInterceptorServices(ctx.Registration, ctx.Instance.GetType())
+            var interceptors = GetInterceptorServices(ctx.Registration, implementationType)
                 .Select(s => ctx.ResolveService(s))
                 .Cast<IInterceptor>()
                 .ToArray();
