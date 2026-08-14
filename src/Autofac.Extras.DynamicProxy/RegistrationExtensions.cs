@@ -311,9 +311,14 @@ public static class RegistrationExtensions
             return registration;
         }
 
+        // The generated proxy constructors don't carry the default values of the
+        // parameters they mirror, so keep hold of the type being proxied to read
+        // them back when binding.
+        var proxiedType = registration.ActivatorData.ImplementationType;
+
         registration.ActivatorData.ImplementationType =
             _proxyGenerator.ProxyBuilder.CreateClassProxyType(
-                registration.ActivatorData.ImplementationType,
+                proxiedType,
                 additionalInterfaces ?? Type.EmptyTypes,
                 options);
 
@@ -343,7 +348,10 @@ public static class RegistrationExtensions
                 proxyParameters.Add(new PositionalParameter(index, options.Selector));
             }
 
-            e.Parameters = proxyParameters.Concat(e.Parameters).ToArray();
+            e.Parameters = proxyParameters
+                .Concat(e.Parameters)
+                .Concat(new Parameter[] { new ProxiedDefaultValueParameter(proxiedType, registration.ActivatorData.ConfiguredParameters) })
+                .ToArray();
         });
 
         return registration;
