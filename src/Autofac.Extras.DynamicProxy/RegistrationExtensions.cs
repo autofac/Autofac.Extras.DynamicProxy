@@ -312,9 +312,6 @@ public static class RegistrationExtensions
             return registration;
         }
 
-        // The generated proxy constructors don't carry the default values of
-        // the parameters they mirror, so keep hold of the type being proxied to
-        // read them back when binding.
         var proxiedType = registration.ActivatorData.ImplementationType;
 
         registration.ActivatorData.ImplementationType =
@@ -325,6 +322,13 @@ public static class RegistrationExtensions
 
         var interceptorServices = GetInterceptorServicesFromAttributes(registration.ActivatorData.ImplementationType);
         AddInterceptorServicesToMetadata(registration, interceptorServices, AttributeInterceptorsPropertyName);
+
+        // The generated proxy constructors don't carry the default values of the
+        // parameters they mirror. Those are read from the type being proxied,
+        // once, the first time something is resolved - the number of arguments
+        // the proxy takes for itself isn't known until the parameters supplying
+        // them have been built.
+        ProxiedDefaultValueParameter? proxiedDefaultValues = null;
 
         registration.OnPreparing(e =>
         {
@@ -349,9 +353,15 @@ public static class RegistrationExtensions
                 proxyParameters.Add(new PositionalParameter(index, options.Selector));
             }
 
+            proxiedDefaultValues ??= new ProxiedDefaultValueParameter(
+                registration.ActivatorData.ImplementationType,
+                proxiedType,
+                registration.ActivatorData.ConfiguredParameters,
+                proxyParameters.Count);
+
             e.Parameters = proxyParameters
                 .Concat(e.Parameters)
-                .Concat(new Parameter[] { new ProxiedDefaultValueParameter(proxiedType, registration.ActivatorData.ConfiguredParameters, proxyParameters.Count) })
+                .Append(proxiedDefaultValues)
                 .ToArray();
         });
 

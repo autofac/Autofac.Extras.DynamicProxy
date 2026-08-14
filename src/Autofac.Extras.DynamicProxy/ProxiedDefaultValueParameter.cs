@@ -22,6 +22,10 @@ namespace Autofac.Extras.DynamicProxy;
 /// proxy's behalf.
 /// </para>
 /// <para>
+/// The values are read once, when this parameter is created, so resolving costs
+/// a dictionary lookup rather than a walk over the constructors.
+/// </para>
+/// <para>
 /// This is a last resort. Values passed to the resolve operation, values
 /// configured on the registration, and services available from the container
 /// all take precedence, which keeps binding behavior the same as it would be
@@ -30,16 +34,18 @@ namespace Autofac.Extras.DynamicProxy;
 /// </remarks>
 internal sealed class ProxiedDefaultValueParameter : Parameter
 {
-    private readonly Type _proxiedType;
-
     private readonly IEnumerable<Parameter> _configuredParameters;
 
-    private readonly int _proxyArgumentCount;
+    private readonly Dictionary<ParameterInfo, Func<object?>> _defaultValues;
 
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="ProxiedDefaultValueParameter"/> class.
     /// </summary>
+    /// <param name="proxyType">
+    /// The generated proxy type, whose constructor parameters are the ones being
+    /// supplied.
+    /// </param>
     /// <param name="proxiedType">
     /// The type that was proxied; the source of the default values.
     /// </param>
@@ -52,31 +58,18 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
     /// proxy itself - the mixins, the interceptor array, and the selector. The
     /// parameters mirrored from the proxied type start after these.
     /// </param>
-    public ProxiedDefaultValueParameter(Type proxiedType, IEnumerable<Parameter> configuredParameters, int proxyArgumentCount)
+    public ProxiedDefaultValueParameter(Type proxyType, Type proxiedType, IEnumerable<Parameter> configuredParameters, int proxyArgumentCount)
     {
-        _proxiedType = proxiedType;
         _configuredParameters = configuredParameters;
-        _proxyArgumentCount = proxyArgumentCount;
+        _defaultValues = FindDefaultValues(proxyType, proxiedType, proxyArgumentCount);
     }
 
     /// <inheritdoc/>
     public override bool CanSupplyValue(ParameterInfo pi, IComponentContext context, [NotNullWhen(returnValue: true)] out Func<object?>? valueProvider)
     {
-        if (pi == null)
-        {
-            throw new ArgumentNullException(nameof(pi));
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
         valueProvider = null;
 
-        // Only generated proxy constructors are missing default values.
-        // Anything else already binds correctly on its own.
-        if (pi.Member is not ConstructorInfo || !_proxiedType.IsAssignableFrom(pi.Member.DeclaringType))
+        if (!_defaultValues.TryGetValue(pi, out var defaultValueProvider))
         {
             return false;
         }
@@ -97,127 +90,150 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
             }
         }
 
-        var proxied = FindProxiedParameter(pi);
-
-        if (proxied is null)
-        {
-            return false;
-        }
-
-        bool hasDefaultValue;
-
-        try
-        {
-            hasDefaultValue = proxied.HasDefaultValue;
-        }
-        catch (FormatException) when (proxied.ParameterType == typeof(DateTime))
-        {
-            // Workaround for https://github.com/dotnet/corefx/issues/12338,
-            // mirroring the handling in Autofac's DefaultValueParameter.
-            // Reading the default value of a DateTime parameter can throw, in
-            // which case the parameter is known to have one.
-            valueProvider = () => default(DateTime);
-            return true;
-        }
-
-        if (!hasDefaultValue)
-        {
-            return false;
-        }
-
-        var defaultValue = proxied.DefaultValue;
-
-        // Workaround for https://github.com/dotnet/corefx/issues/11797,
-        // mirroring the handling in Autofac's DefaultValueParameter.
-        if (defaultValue is null && pi.ParameterType.IsValueType)
-        {
-            defaultValue = Activator.CreateInstance(pi.ParameterType);
-        }
-
-        valueProvider = () => defaultValue;
+        valueProvider = defaultValueProvider;
         return true;
     }
 
     /// <summary>
-    /// Locates the parameter on the proxied type that corresponds to a
-    /// parameter on the generated proxy constructor.
+    /// Reads the default values the generated constructors dropped, keyed by the
+    /// proxy constructor parameter each one belongs to.
     /// </summary>
-    /// <param name="pi">
-    /// The proxy constructor parameter.
+    /// <param name="proxyType">The generated proxy type.</param>
+    /// <param name="proxiedType">The type that was proxied.</param>
+    /// <param name="proxyArgumentCount">
+    /// The number of leading arguments the generated constructors take for the
+    /// proxy itself.
     /// </param>
     /// <returns>
-    /// The matching parameter on the proxied type, or <see langword="null" />
-    /// if there isn't one.
+    /// The default value providers for the parameters that have one.
     /// </returns>
     /// <remarks>
     /// <para>
-    /// A generated constructor takes the arguments the proxy itself needs and
-    /// then mirrors, in order, the parameters of the one constructor it chains
-    /// to. The whole mirrored signature has to be matched to find that
-    /// constructor: overloads can share a parameter name and type while
-    /// declaring different default values, so matching a single parameter
+    /// A generated constructor mirrors, in order, the parameters of the one
+    /// constructor it chains to. The whole mirrored signature has to be matched
+    /// to find that constructor: overloads can share a parameter name and type
+    /// while declaring different default values, so matching a single parameter
     /// across all of them picks up the wrong default.
     /// </para>
     /// </remarks>
-    private ParameterInfo? FindProxiedParameter(ParameterInfo pi)
+    private static Dictionary<ParameterInfo, Func<object?>> FindDefaultValues(Type proxyType, Type proxiedType, int proxyArgumentCount)
     {
-        var mirroredPosition = pi.Position - _proxyArgumentCount;
-
-        if (mirroredPosition < 0)
-        {
-            // An argument belonging to the proxy rather than to the proxied
-            // type.
-            return null;
-        }
-
-        var mirrored = ((ConstructorInfo)pi.Member).GetParameters();
+        var defaultValues = new Dictionary<ParameterInfo, Func<object?>>();
 
         // Non-public constructors are included because a protected constructor
-        // is mirrored by a public one on the proxy, which the container can
-        // then select.
-        foreach (var constructor in _proxiedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+        // is mirrored by a public one on the proxy, which the container can then
+        // select.
+        var proxiedConstructors = proxiedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (var proxyConstructor in proxyType.GetConstructors())
         {
-            var candidates = constructor.GetParameters();
+            var mirrored = proxyConstructor.GetParameters();
 
-            if (candidates.Length != mirrored.Length - _proxyArgumentCount)
+            foreach (var proxiedConstructor in proxiedConstructors)
             {
-                continue;
-            }
+                var proxied = proxiedConstructor.GetParameters();
 
-            if (IsMirroredBy(candidates, mirrored))
-            {
-                return candidates[mirroredPosition];
+                if (proxied.Length != mirrored.Length - proxyArgumentCount ||
+                    !IsMirroredBy(proxied, mirrored, proxyArgumentCount))
+                {
+                    continue;
+                }
+
+                AddDefaultValues(defaultValues, proxied, mirrored, proxyArgumentCount);
+                break;
             }
         }
 
-        return null;
+        return defaultValues;
     }
 
     /// <summary>
     /// Determines whether the parameters of a constructor on the proxied type
     /// are the ones a generated constructor mirrors.
     /// </summary>
-    /// <param name="candidates">
+    /// <param name="proxied">
     /// The parameters of a constructor on the proxied type.
     /// </param>
     /// <param name="mirrored">
     /// The parameters of the generated proxy constructor.
     /// </param>
+    /// <param name="proxyArgumentCount">
+    /// The number of leading arguments the generated constructor takes for the
+    /// proxy itself.
+    /// </param>
     /// <returns>
     /// <see langword="true" /> if the generated constructor mirrors
-    /// <paramref name="candidates" />; otherwise, <see langword="false" />.
+    /// <paramref name="proxied" />; otherwise, <see langword="false" />.
     /// </returns>
-    private bool IsMirroredBy(ParameterInfo[] candidates, ParameterInfo[] mirrored)
+    private static bool IsMirroredBy(ParameterInfo[] proxied, ParameterInfo[] mirrored, int proxyArgumentCount)
     {
-        for (var i = 0; i < candidates.Length; i++)
+        for (var i = 0; i < proxied.Length; i++)
         {
-            var proxyParameter = mirrored[i + _proxyArgumentCount];
+            var proxyParameter = mirrored[i + proxyArgumentCount];
 
-            if (!string.Equals(candidates[i].Name, proxyParameter.Name, StringComparison.Ordinal) ||
-                candidates[i].ParameterType != proxyParameter.ParameterType)
+            if (!string.Equals(proxied[i].Name, proxyParameter.Name, StringComparison.Ordinal) ||
+                proxied[i].ParameterType != proxyParameter.ParameterType)
             {
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Records the default values declared on a constructor of the proxied type
+    /// against the parameters of the generated constructor mirroring it.
+    /// </summary>
+    /// <param name="defaultValues">The set of default values being built.</param>
+    /// <param name="proxied">
+    /// The parameters of the constructor on the proxied type.
+    /// </param>
+    /// <param name="mirrored">
+    /// The parameters of the generated proxy constructor.
+    /// </param>
+    /// <param name="proxyArgumentCount">
+    /// The number of leading arguments the generated constructor takes for the
+    /// proxy itself.
+    /// </param>
+    private static void AddDefaultValues(Dictionary<ParameterInfo, Func<object?>> defaultValues, ParameterInfo[] proxied, ParameterInfo[] mirrored, int proxyArgumentCount)
+    {
+        for (var i = 0; i < proxied.Length; i++)
+        {
+            if (TryGetDefaultValue(proxied[i], out var defaultValue))
+            {
+                defaultValues.Add(mirrored[i + proxyArgumentCount], () => defaultValue);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads the default value declared on a parameter of the proxied type.
+    /// </summary>
+    /// <param name="proxied">The parameter on the proxied type.</param>
+    /// <param name="defaultValue">
+    /// The default value, if the parameter declares one.
+    /// </param>
+    /// <returns>
+    /// <see langword="true" /> if the parameter declares a default value;
+    /// otherwise, <see langword="false" />.
+    /// </returns>
+    private static bool TryGetDefaultValue(ParameterInfo proxied, out object? defaultValue)
+    {
+        defaultValue = null;
+
+        if (!proxied.HasDefaultValue)
+        {
+            return false;
+        }
+
+        defaultValue = proxied.DefaultValue;
+
+        // Workaround for https://github.com/dotnet/corefx/issues/11797,
+        // mirroring the handling in Autofac's DefaultValueParameter.
+        if (defaultValue is null && proxied.ParameterType.IsValueType)
+        {
+            defaultValue = Activator.CreateInstance(proxied.ParameterType);
         }
 
         return true;

@@ -105,6 +105,22 @@ public class ClassInterceptorsWithOptionalParametersFixture
     }
 
     [Fact]
+    public void DefaultComesFromTheRightConstructorWhenOverloadsTakeTheSameCount()
+    {
+        var builder = new ContainerBuilder();
+        builder.RegisterType<HasSameArityConstructors>()
+            .EnableClassInterceptors()
+            .InterceptedBy(typeof(DoNothingInterceptor));
+        builder.RegisterType<DoNothingInterceptor>();
+        builder.RegisterType<Dependency>().As<IDependency>();
+        var container = builder.Build();
+
+        var instance = container.Resolve<HasSameArityConstructors>();
+
+        Assert.Equal(3, instance.Count);
+    }
+
+    [Fact]
     public void ProtectedConstructorDefaultIsUsed()
     {
         // A protected constructor is mirrored by a public one on the proxy, so
@@ -210,6 +226,36 @@ public class ClassInterceptorsWithOptionalParametersFixture
         }
 
         public IDependency? Dependency
+        {
+            get;
+        }
+    }
+
+    public class HasSameArityConstructors
+    {
+        public HasSameArityConstructors(IDependency dependency, int count = 3)
+        {
+            Dependency = dependency;
+            Count = count;
+        }
+
+        public HasSameArityConstructors(string name, int count = 4)
+        {
+            Name = name;
+            Count = count;
+        }
+
+        public int Count
+        {
+            get;
+        }
+
+        public IDependency? Dependency
+        {
+            get;
+        }
+
+        public string? Name
         {
             get;
         }
