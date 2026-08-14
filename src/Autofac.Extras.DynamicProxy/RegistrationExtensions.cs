@@ -303,22 +303,32 @@ public static class RegistrationExtensions
             throw new ArgumentNullException(nameof(registration));
         }
 
-        // Class interception rewrites the implementation type to a proxy subclass
-        // at registration time, so the decision to intercept is made here, per type.
-        // When the predicate rejects the type the registration is left untouched.
+        // Class interception rewrites the implementation type to a proxy
+        // subclass at registration time, so the decision to intercept is made
+        // here, per type. When the predicate rejects the type the registration
+        // is left untouched.
         if (shouldIntercept != null && !shouldIntercept(registration.ActivatorData.ImplementationType))
         {
             return registration;
         }
 
+        var proxiedType = registration.ActivatorData.ImplementationType;
+
         registration.ActivatorData.ImplementationType =
             _proxyGenerator.ProxyBuilder.CreateClassProxyType(
-                registration.ActivatorData.ImplementationType,
+                proxiedType,
                 additionalInterfaces ?? Type.EmptyTypes,
                 options);
 
         var interceptorServices = GetInterceptorServicesFromAttributes(registration.ActivatorData.ImplementationType);
         AddInterceptorServicesToMetadata(registration, interceptorServices, AttributeInterceptorsPropertyName);
+
+        // The generated proxy constructors don't carry the default values of the
+        // parameters they mirror. Those are read from the type being proxied,
+        // once, the first time something is resolved - the number of arguments
+        // the proxy takes for itself isn't known until the parameters supplying
+        // them have been built.
+        ProxiedDefaultValueParameter? proxiedDefaultValues = null;
 
         registration.OnPreparing(e =>
         {
@@ -343,7 +353,16 @@ public static class RegistrationExtensions
                 proxyParameters.Add(new PositionalParameter(index, options.Selector));
             }
 
-            e.Parameters = proxyParameters.Concat(e.Parameters).ToArray();
+            proxiedDefaultValues ??= new ProxiedDefaultValueParameter(
+                registration.ActivatorData.ImplementationType,
+                proxiedType,
+                registration.ActivatorData.ConfiguredParameters,
+                proxyParameters.Count);
+
+            e.Parameters = proxyParameters
+                .Concat(e.Parameters)
+                .Append(proxiedDefaultValues)
+                .ToArray();
         });
 
         return registration;
