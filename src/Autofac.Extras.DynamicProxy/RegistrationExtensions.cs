@@ -350,7 +350,7 @@ public static class RegistrationExtensions
 
             e.Parameters = proxyParameters
                 .Concat(e.Parameters)
-                .Concat(new Parameter[] { new ProxiedDefaultValueParameter(proxiedType, registration.ActivatorData.ConfiguredParameters) })
+                .Concat(new Parameter[] { new ProxiedDefaultValueParameter(proxiedType, registration.ActivatorData.ConfiguredParameters, proxyParameters.Count) })
                 .ToArray();
         });
 

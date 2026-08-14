@@ -95,6 +95,60 @@ public class ClassInterceptorsWithOptionalParametersFixture
         Assert.Throws<DependencyResolutionException>(() => container.Resolve<HasRequiredDependency>());
     }
 
+    [Fact]
+    public void DefaultComesFromTheSelectedConstructorOverload()
+    {
+        var builder = new ContainerBuilder();
+        builder.RegisterType<HasOverloadedConstructors>()
+            .EnableClassInterceptors()
+            .InterceptedBy(typeof(DoNothingInterceptor))
+            .WithParameter(TypedParameter.From<IDependency>(new Dependency()));
+        builder.RegisterType<DoNothingInterceptor>();
+        var container = builder.Build();
+
+        var instance = container.Resolve<HasOverloadedConstructors>();
+
+        Assert.Equal(99, instance.Count);
+    }
+
+    [Fact]
+    public void DefaultComesFromTheShorterConstructorWhenItIsTheOneSelected()
+    {
+        var container = BuildContainer<HasOverloadedConstructors>();
+
+        var instance = container.Resolve<HasOverloadedConstructors>();
+
+        Assert.Equal(1, instance.Count);
+    }
+
+    [Fact]
+    public void ProtectedConstructorDefaultIsUsed()
+    {
+        // A protected constructor is mirrored by a public one on the proxy, so the
+        // container can select it where it couldn't on the unproxied type.
+        var builder = new ContainerBuilder();
+        builder.RegisterType<HasProtectedConstructor>()
+            .EnableClassInterceptors()
+            .InterceptedBy(typeof(DoNothingInterceptor))
+            .WithParameter(TypedParameter.From("named"));
+        builder.RegisterType<DoNothingInterceptor>();
+        var container = builder.Build();
+
+        var instance = container.Resolve<HasProtectedConstructor>();
+
+        Assert.Equal(7, instance.Count);
+    }
+
+    [Fact]
+    public void OptionalDateTimeParameterUsesDefault()
+    {
+        var container = BuildContainer<HasOptionalDateTime>();
+
+        var instance = container.Resolve<HasOptionalDateTime>();
+
+        Assert.Equal(default, instance.When);
+    }
+
     private static IContainer BuildContainer<TService>()
         where TService : class
     {
@@ -142,6 +196,62 @@ public class ClassInterceptorsWithOptionalParametersFixture
         public virtual int GetCountByMethod()
         {
             return Count;
+        }
+    }
+
+    public class HasOptionalDateTime
+    {
+        public HasOptionalDateTime(DateTime when = default)
+        {
+            When = when;
+        }
+
+        public DateTime When
+        {
+            get;
+        }
+    }
+
+    public class HasOverloadedConstructors
+    {
+        public HasOverloadedConstructors(int count = 1)
+        {
+            Count = count;
+        }
+
+        public HasOverloadedConstructors(IDependency dependency, int count = 99)
+        {
+            Dependency = dependency;
+            Count = count;
+        }
+
+        public int Count
+        {
+            get;
+        }
+
+        public IDependency? Dependency
+        {
+            get;
+        }
+    }
+
+    public class HasProtectedConstructor
+    {
+        protected HasProtectedConstructor(string name, int count = 7)
+        {
+            Name = name;
+            Count = count;
+        }
+
+        public string Name
+        {
+            get;
+        }
+
+        public int Count
+        {
+            get;
         }
     }
 

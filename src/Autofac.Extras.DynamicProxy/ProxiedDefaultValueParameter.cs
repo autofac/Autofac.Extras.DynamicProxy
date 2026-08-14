@@ -31,6 +31,8 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
 
     private readonly IEnumerable<Parameter> _configuredParameters;
 
+    private readonly int _proxyArgumentCount;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProxiedDefaultValueParameter"/> class.
     /// </summary>
@@ -41,10 +43,16 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
     /// The parameters configured on the registration. These take precedence over
     /// default values, so they're checked before one is supplied.
     /// </param>
-    public ProxiedDefaultValueParameter(Type proxiedType, IEnumerable<Parameter> configuredParameters)
+    /// <param name="proxyArgumentCount">
+    /// The number of leading arguments the generated constructors take for the proxy
+    /// itself - the mixins, the interceptor array, and the selector. The parameters
+    /// mirrored from the proxied type start after these.
+    /// </param>
+    public ProxiedDefaultValueParameter(Type proxiedType, IEnumerable<Parameter> configuredParameters, int proxyArgumentCount)
     {
         _proxiedType = proxiedType;
         _configuredParameters = configuredParameters;
+        _proxyArgumentCount = proxyArgumentCount;
     }
 
     /// <inheritdoc/>
@@ -87,7 +95,28 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
 
         var proxied = FindProxiedParameter(pi);
 
-        if (proxied is null || !proxied.HasDefaultValue)
+        if (proxied is null)
+        {
+            return false;
+        }
+
+        bool hasDefaultValue;
+
+        try
+        {
+            hasDefaultValue = proxied.HasDefaultValue;
+        }
+        catch (FormatException) when (proxied.ParameterType == typeof(DateTime))
+        {
+            // Workaround for https://github.com/dotnet/corefx/issues/12338, mirroring
+            // the handling in Autofac's DefaultValueParameter. Reading the default
+            // value of a DateTime parameter can throw, in which case the parameter is
+            // known to have one.
+            valueProvider = () => default(DateTime);
+            return true;
+        }
+
+        if (!hasDefaultValue)
         {
             return false;
         }
@@ -114,20 +143,71 @@ internal sealed class ProxiedDefaultValueParameter : Parameter
     /// The matching parameter on the proxied type, or <see langword="null" /> if
     /// there isn't one.
     /// </returns>
+    /// <remarks>
+    /// <para>
+    /// A generated constructor takes the arguments the proxy itself needs and then
+    /// mirrors, in order, the parameters of the one constructor it chains to. The
+    /// whole mirrored signature has to be matched to find that constructor:
+    /// overloads can share a parameter name and type while declaring different
+    /// default values, so matching a single parameter across all of them picks up
+    /// the wrong default.
+    /// </para>
+    /// </remarks>
     private ParameterInfo? FindProxiedParameter(ParameterInfo pi)
     {
+        var mirroredPosition = pi.Position - _proxyArgumentCount;
+
+        if (mirroredPosition < 0)
+        {
+            // An argument belonging to the proxy rather than to the proxied type.
+            return null;
+        }
+
+        var mirrored = ((ConstructorInfo)pi.Member).GetParameters();
+
+        // Non-public constructors are included because a protected constructor is
+        // mirrored by a public one on the proxy, which the container can then select.
         foreach (var constructor in _proxiedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
         {
-            foreach (var parameter in constructor.GetParameters())
+            var candidates = constructor.GetParameters();
+
+            if (candidates.Length != mirrored.Length - _proxyArgumentCount)
             {
-                if (string.Equals(parameter.Name, pi.Name, StringComparison.Ordinal) &&
-                    parameter.ParameterType == pi.ParameterType)
-                {
-                    return parameter;
-                }
+                continue;
+            }
+
+            if (IsMirroredBy(candidates, mirrored))
+            {
+                return candidates[mirroredPosition];
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Determines whether the parameters of a constructor on the proxied type are the
+    /// ones a generated constructor mirrors.
+    /// </summary>
+    /// <param name="candidates">The parameters of a constructor on the proxied type.</param>
+    /// <param name="mirrored">The parameters of the generated proxy constructor.</param>
+    /// <returns>
+    /// <see langword="true" /> if the generated constructor mirrors
+    /// <paramref name="candidates" />; otherwise, <see langword="false" />.
+    /// </returns>
+    private bool IsMirroredBy(ParameterInfo[] candidates, ParameterInfo[] mirrored)
+    {
+        for (var i = 0; i < candidates.Length; i++)
+        {
+            var proxyParameter = mirrored[i + _proxyArgumentCount];
+
+            if (!string.Equals(candidates[i].Name, proxyParameter.Name, StringComparison.Ordinal) ||
+                candidates[i].ParameterType != proxyParameter.ParameterType)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
