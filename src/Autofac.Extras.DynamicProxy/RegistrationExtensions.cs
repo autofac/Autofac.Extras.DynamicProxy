@@ -303,17 +303,18 @@ public static class RegistrationExtensions
             throw new ArgumentNullException(nameof(registration));
         }
 
-        // Class interception rewrites the implementation type to a proxy subclass
-        // at registration time, so the decision to intercept is made here, per type.
-        // When the predicate rejects the type the registration is left untouched.
+        // Class interception rewrites the implementation type to a proxy
+        // subclass at registration time, so the decision to intercept is made
+        // here, per type. When the predicate rejects the type the registration
+        // is left untouched.
         if (shouldIntercept != null && !shouldIntercept(registration.ActivatorData.ImplementationType))
         {
             return registration;
         }
 
-        // The generated proxy constructors don't carry the default values of the
-        // parameters they mirror, so keep hold of the type being proxied to read
-        // them back when binding.
+        // The generated proxy constructors don't carry the default values of
+        // the parameters they mirror, so keep hold of the type being proxied to
+        // read them back when binding.
         var proxiedType = registration.ActivatorData.ImplementationType;
 
         registration.ActivatorData.ImplementationType =

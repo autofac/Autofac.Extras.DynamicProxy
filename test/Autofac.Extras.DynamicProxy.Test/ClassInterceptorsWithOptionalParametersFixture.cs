@@ -12,9 +12,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
     public void OptionalReferenceParameterUsesDefaultWhenNotRegistered()
     {
         var container = BuildContainer<HasOptionalDependency>();
-
         var instance = container.Resolve<HasOptionalDependency>();
-
         Assert.Null(instance.Dependency);
     }
 
@@ -22,9 +20,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
     public void OptionalValueParameterUsesDefaultWhenNotRegistered()
     {
         var container = BuildContainer<HasOptionalValue>();
-
         var instance = container.Resolve<HasOptionalValue>();
-
         Assert.Equal(42, instance.Count);
     }
 
@@ -37,9 +33,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
             .InterceptedBy(typeof(AddOneInterceptor));
         builder.RegisterType<AddOneInterceptor>();
         var container = builder.Build();
-
         var instance = container.Resolve<HasOptionalValue>();
-
         Assert.Equal(43, instance.GetCountByMethod());
     }
 
@@ -53,9 +47,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
         builder.RegisterType<DoNothingInterceptor>();
         builder.RegisterType<Dependency>().As<IDependency>();
         var container = builder.Build();
-
         var instance = container.Resolve<HasOptionalDependency>();
-
         Assert.IsType<Dependency>(instance.Dependency);
     }
 
@@ -70,9 +62,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
             .WithParameter(TypedParameter.From<IDependency>(expected));
         builder.RegisterType<DoNothingInterceptor>();
         var container = builder.Build();
-
         var instance = container.Resolve<HasOptionalDependency>();
-
         Assert.Same(expected, instance.Dependency);
     }
 
@@ -81,9 +71,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
     {
         var container = BuildContainer<HasOptionalDependency>();
         var expected = new Dependency();
-
         var instance = container.Resolve<HasOptionalDependency>(TypedParameter.From<IDependency>(expected));
-
         Assert.Same(expected, instance.Dependency);
     }
 
@@ -91,7 +79,6 @@ public class ClassInterceptorsWithOptionalParametersFixture
     public void RequiredParameterStillThrowsWhenMissing()
     {
         var container = BuildContainer<HasRequiredDependency>();
-
         Assert.Throws<DependencyResolutionException>(() => container.Resolve<HasRequiredDependency>());
     }
 
@@ -105,9 +92,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
             .WithParameter(TypedParameter.From<IDependency>(new Dependency()));
         builder.RegisterType<DoNothingInterceptor>();
         var container = builder.Build();
-
         var instance = container.Resolve<HasOverloadedConstructors>();
-
         Assert.Equal(99, instance.Count);
     }
 
@@ -115,17 +100,15 @@ public class ClassInterceptorsWithOptionalParametersFixture
     public void DefaultComesFromTheShorterConstructorWhenItIsTheOneSelected()
     {
         var container = BuildContainer<HasOverloadedConstructors>();
-
         var instance = container.Resolve<HasOverloadedConstructors>();
-
         Assert.Equal(1, instance.Count);
     }
 
     [Fact]
     public void ProtectedConstructorDefaultIsUsed()
     {
-        // A protected constructor is mirrored by a public one on the proxy, so the
-        // container can select it where it couldn't on the unproxied type.
+        // A protected constructor is mirrored by a public one on the proxy, so
+        // the container can select it where it couldn't on the unproxied type.
         var builder = new ContainerBuilder();
         builder.RegisterType<HasProtectedConstructor>()
             .EnableClassInterceptors()
@@ -133,9 +116,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
             .WithParameter(TypedParameter.From("named"));
         builder.RegisterType<DoNothingInterceptor>();
         var container = builder.Build();
-
         var instance = container.Resolve<HasProtectedConstructor>();
-
         Assert.Equal(7, instance.Count);
     }
 
@@ -143,9 +124,7 @@ public class ClassInterceptorsWithOptionalParametersFixture
     public void OptionalDateTimeParameterUsesDefault()
     {
         var container = BuildContainer<HasOptionalDateTime>();
-
         var instance = container.Resolve<HasOptionalDateTime>();
-
         Assert.Equal(default, instance.When);
     }
 
